@@ -1,0 +1,543 @@
+﻿<Window
+    x:Class="Frumble.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    Background="Black"
+    Closing="Window_Closing"
+    Foreground="Ivory"
+    Loaded="Window_Loaded"
+    WindowState="Maximized"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Dictionary1.xaml" />
+                <ResourceDictionary Source="Dictionary2.xaml" />
+                <ResourceDictionary Source="DictionaryTab.xaml" />
+                <ResourceDictionary Source="DictionaryLabel.xaml" />
+                <ResourceDictionary Source="DictionaryScrollBar.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="EslScrollbarThumb" Color="#777" />
+            <Style x:Key="ScrollBarPageButton" TargetType="{x:Type RepeatButton}">
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type RepeatButton}">
+                            <Border
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="Transparent" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Thumb}">
+                            <Border
+                                Width="20"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ScrollBarThumbHor" TargetType="{x:Type Thumb}">
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Thumb}">
+                            <Border
+                                Height="6"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
+                <Track Name="PART_Track" IsDirectionReversed="true">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb
+                            Margin="2,0,2,0"
+                            Background="{DynamicResource EslScrollbarThumb}"
+                            Style="{StaticResource ScrollBarThumb}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="HorizontalScrollBar" TargetType="{x:Type ScrollBar}">
+                <Track Name="PART_Track" IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb
+                            Margin="0,2,0,2"
+                            Background="{DynamicResource EslScrollbarThumb}"
+                            Style="{StaticResource ScrollBarThumbHor}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </ControlTemplate>
+
+            <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Style.Triggers>
+                    <Trigger Property="Orientation" Value="Horizontal">
+                        <Setter Property="Width" Value="Auto" />
+                        <Setter Property="Height" Value="10" />
+                        <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                    </Trigger>
+                    <Trigger Property="Orientation" Value="Vertical">
+                        <Setter Property="Width" Value="10" />
+                        <Setter Property="Height" Value="Auto" />
+                        <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+
+
+
+
+
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <TabControl
+                x:Name="sideTabs"
+                Background="Black"
+                TabStripPlacement="Left">
+                <TabItem Header="Main" Style="{StaticResource Vertical}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="90" />
+                            <RowDefinition />
+                            <RowDefinition Height="35" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="Frequent">
+                                <WrapPanel Orientation="Vertical">
+                                    <Label
+                                        Content="Add"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Remove"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                </WrapPanel>
+                            </GroupBox>
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="Pinned">
+                                <WrapPanel Orientation="Vertical">
+                                    <Label
+                                        Content="Add"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Remove"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+
+                                </WrapPanel>
+                            </GroupBox>
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="Folder Operations">
+                                <WrapPanel Orientation="Vertical">
+                                    <Label
+                                        Content="Cut"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Copy"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Paste"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Delete"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Rename"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="New"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                </WrapPanel>
+                            </GroupBox>
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="File Operations">
+                                <WrapPanel Orientation="Vertical">
+                                    <Label
+                                        Content="Cut"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Copy"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        x:Name="foPasteOp"
+                                        Content="Paste"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Delete"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Rename"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                </WrapPanel>
+                            </GroupBox>
+                        </StackPanel>
+                        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="45" />
+                                <ColumnDefinition Width="8*" />
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <Label
+                                    x:Name="btnBack"
+                                    Content="B"
+                                    FontSize="20"
+                                    FontStretch="UltraExpanded"
+                                    FontWeight="UltraBold"
+                                    Foreground="LightGray"
+                                    IsEnabled="False"
+                                    MouseDown="btnBack_MouseDown"
+                                    MouseEnter="Label_MouseEnter"
+                                    MouseLeave="Label_MouseLeave"
+                                    MouseUp="btnBack_MouseUp" />
+                                <Label
+                                    x:Name="btnForward"
+                                    Content="F"
+                                    FontSize="20"
+                                    FontStretch="UltraExpanded"
+                                    FontWeight="UltraBold"
+                                    Foreground="LightGray"
+                                    IsEnabled="False"
+                                    MouseDown="btnForward_MouseDown"
+                                    MouseEnter="Label_MouseEnter"
+                                    MouseLeave="Label_MouseLeave"
+                                    MouseUp="btnForward_MouseUp" />
+                            </StackPanel>
+                            <TextBox
+                                x:Name="tbCurrentPath"
+                                Grid.Column="1"
+                                Padding="10,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="#FF040813"
+                                TextBlock.Foreground="LightGray" />
+                            <CheckBox
+                                x:Name="cboxSearch"
+                                Grid.Column="2"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                ToolTip="Search Subdirectories" />
+                            <TextBox
+                                x:Name="tbSearch"
+                                Grid.Column="3"
+                                Padding="10,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="#FF040813"
+                                KeyUp="tbSearch_KeyUp"
+                                Text=""
+                                TextBlock.Foreground="LightGray" />
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="8*" />
+                            </Grid.ColumnDefinitions>
+                            <TreeView
+                                x:Name="tv"
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Loaded="tv_Loaded"
+                                SelectedItemChanged="tv_SelectedItemChanged" />
+                            <GridSplitter
+                                Grid.Column="1"
+                                Width="3"
+                                HorizontalAlignment="Stretch" />
+
+                            <ListView
+                                x:Name="lv"
+                                Grid.Column="2"
+                                Background="Black"
+                                Foreground="Ivory"
+                                KeyUp="lv_KeyUp"
+                                MouseDoubleClick="lv_MouseDoubleClick"
+                                MouseLeftButtonUp="lv_MouseLeftButtonUp">
+                                <ListView.ContextMenu>
+                                    <ContextMenu
+                                        Name="lvCM"
+                                        Background="Black"
+                                        Closed="lvCM_Closed"
+                                        Foreground="Ivory"
+                                        Opened="lvCM_Opened">
+                                        <MenuItem
+                                            x:Name="openWith"
+                                            Background="Black"
+                                            Foreground="Ivory"
+                                            Header="Open With">
+                                            <MenuItem
+                                                Name="addThisApp"
+                                                Background="Black"
+                                                Click="AddThisApp_Click"
+                                                Foreground="Ivory"
+                                                Header="Add Selected App" />
+                                        </MenuItem>
+                                        <MenuItem
+                                            x:Name="sendTo"
+                                            Background="Black"
+                                            Foreground="Ivory"
+                                            Header="Send To" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
+                            </ListView>
+                        </Grid>
+                        <TextBlock
+                            x:Name="footer"
+                            Grid.Row="4"
+                            Margin="10,0,0,0"
+                            Padding="10,0,0,0"
+                            Text="0 items selected" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Options" Style="{StaticResource Vertical}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Path to file containing relevant exe paths" />
+                            <TextBox
+                                x:Name="openWithPath"
+                                Margin="10"
+                                Padding="10,0,10,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Text="OpenWithPaths.txt" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Path to file containing frequent folder paths" />
+                            <TextBox
+                                x:Name="tbFrequentPath"
+                                Margin="10"
+                                Padding="10,0,10,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Text="FrequentPaths.txt" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Path to file containing send to folder paths" />
+                            <TextBox
+                                x:Name="tbSendToPath"
+                                Margin="10"
+                                Padding="10,0,10,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Text="SendToPaths.txt" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Should logs be saved on exit?" />
+                            <CheckBox
+                                x:Name="chboxAutoSaveLogs"
+                                Margin="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Log" Style="{StaticResource Vertical}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="40" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            x:Name="tblLog"
+                            Margin="20"
+                            Padding="10" />
+                        <StackPanel
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="btnSaveLog"
+                                Margin="5"
+                                Content="Save" />
+                            <Button
+                                x:Name="btnClearLog"
+                                Margin="5"
+                                Click="btnClearLog_Click"
+                                Content="Clear" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
