@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -172,5 +173,13 @@ public partial class MainWindow : Window
     private void Label_MouseLeave(object sender, MouseEventArgs e)
     {
         ((Label)sender).Foreground = Brushes.LightGray;
+    }
+
+    private void tv_Loaded(object sender, RoutedEventArgs e)
+    {
+        //TreeView tree = (TreeView)sender;
+        //Thumb thumb = tree.Chi<Thumb>(scrollBar);
+        //Rectangle rectangle = FindVisualChild<Rectangle>(thumb);
+        //rectangle.Fill = Brushes.Red;
     }
 }
