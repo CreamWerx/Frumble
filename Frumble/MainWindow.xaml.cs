@@ -157,7 +157,12 @@ public partial class MainWindow : Window
 
     private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ((Label)sender).Foreground = Brushes.LightGray;
+        Label labelButton = (Label)sender;
+        labelButton.Foreground = Brushes.LightGray;
+        WrapPanel wrapPanel = (WrapPanel)labelButton.Parent;//
+        GroupBox groupBox = (GroupBox)wrapPanel.Parent;//.GetType().ToString();
+        string gbTitle = groupBox.Header.ToString();
+        Title = gbTitle + " - " + labelButton.Content.ToString();
     }
 
     private void Label_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -181,5 +186,29 @@ public partial class MainWindow : Window
         //Thumb thumb = tree.Chi<Thumb>(scrollBar);
         //Rectangle rectangle = FindVisualChild<Rectangle>(thumb);
         //rectangle.Fill = Brushes.Red;
+    }
+
+    private void lv_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.Source is ListView)
+        {
+            lv.UnselectAll();
+        }
+        SetFooter(lv.SelectedItems.Count);
+    }
+
+    private void lv_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (Keyboard.IsKeyDown(Key.LeftCtrl))
+        {
+            if (e.Key == Key.A)
+            {
+                SetFooter(lv.Items.Count);
+            }
+            else if (e.Key == Key.C)
+            {
+                //CommonMethods.CopyViewItemPathsToClipboard(CommonMethods.GetCurrentListView(tabControl));
+            }
+        }
     }
 }

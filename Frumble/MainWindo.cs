@@ -138,4 +138,10 @@ public partial class MainWindow
 
         return menuItem;
     }
+
+    private void SetFooter(int count)
+    {
+        string collective = (count == 1) ? "item" : "items";
+        footer.Text = $"{count} {collective} selected";
+    }
 }

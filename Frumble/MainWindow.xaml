@@ -25,21 +25,24 @@
             <SolidColorBrush x:Key="EslScrollbarThumb" Color="#777" />
             <Style x:Key="ScrollBarPageButton" TargetType="{x:Type RepeatButton}">
                 <Setter Property="Visibility" Value="Visible" />
-                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="true" />
                 <Setter Property="OverridesDefaultStyle" Value="true" />
                 <Setter Property="IsTabStop" Value="false" />
                 <Setter Property="Focusable" Value="false" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type RepeatButton}">
-                            <Border Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Border>
+                            <Border
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="Transparent" />
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
 
             <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
-                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="true" />
                 <Setter Property="OverridesDefaultStyle" Value="true" />
                 <Setter Property="IsTabStop" Value="false" />
                 <Setter Property="Focusable" Value="false" />
@@ -47,10 +50,10 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
                             <Border
-                        CornerRadius="3"
-                        Background="{TemplateBinding Background}"
-                        BorderThickness="1"
-                        Width="6" />
+                                Width="20"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3" />
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -65,55 +68,51 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
                             <Border
-                        CornerRadius="3"
-                        Background="{TemplateBinding Background}"
-                        BorderThickness="0"
-                        Height="6" />
+                                Height="6"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3" />
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
 
             <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
-                <Track
-            Name="PART_Track"
-            IsDirectionReversed="true">
+                <Track Name="PART_Track" IsDirectionReversed="true">
                     <Track.DecreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageUpCommand" />
+                        <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollBarPageButton}" />
                     </Track.DecreaseRepeatButton>
                     <Track.Thumb>
                         <Thumb
-                    Style="{StaticResource ScrollBarThumb}"
-                    Margin="2,0,2,0"
-                    Background="{DynamicResource EslScrollbarThumb}" />
+                            Margin="2,0,2,0"
+                            Background="{DynamicResource EslScrollbarThumb}"
+                            Style="{StaticResource ScrollBarThumb}" />
                     </Track.Thumb>
                     <Track.IncreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageDownCommand" />
+                        <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollBarPageButton}" />
                     </Track.IncreaseRepeatButton>
                 </Track>
             </ControlTemplate>
 
             <ControlTemplate x:Key="HorizontalScrollBar" TargetType="{x:Type ScrollBar}">
-                <Track
-            Name="PART_Track"
-            IsDirectionReversed="False">
+                <Track Name="PART_Track" IsDirectionReversed="False">
                     <Track.DecreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageLeftCommand" />
+                        <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource ScrollBarPageButton}" />
                     </Track.DecreaseRepeatButton>
                     <Track.Thumb>
                         <Thumb
-                    Style="{StaticResource ScrollBarThumbHor}"
-                    Margin="0,2,0,2"
-                    Background="{DynamicResource EslScrollbarThumb}" />
+                            Margin="0,2,0,2"
+                            Background="{DynamicResource EslScrollbarThumb}"
+                            Style="{StaticResource ScrollBarThumbHor}" />
                     </Track.Thumb>
                     <Track.IncreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageRightCommand" />
+                        <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource ScrollBarPageButton}" />
                     </Track.IncreaseRepeatButton>
                 </Track>
             </ControlTemplate>
 
             <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
-                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="true" />
                 <Setter Property="OverridesDefaultStyle" Value="true" />
                 <Style.Triggers>
                     <Trigger Property="Orientation" Value="Horizontal">
@@ -129,80 +128,9 @@
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="FavsScrollViewer" TargetType="{x:Type ScrollViewer}">
-                <Setter Property="OverridesDefaultStyle" Value="True" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <ScrollContentPresenter Grid.Column="1" />
-                                <ScrollBar
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Name="PART_VerticalScrollBar"
-                            Value="{TemplateBinding VerticalOffset}"
-                            Maximum="{TemplateBinding ScrollableHeight}"
-                            ViewportSize="{TemplateBinding ViewportHeight}"
-                            Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
-                                <ScrollBar
-                            Name="PART_HorizontalScrollBar"
-                            Orientation="Horizontal"
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Value="{TemplateBinding HorizontalOffset}"
-                            Maximum="{TemplateBinding ScrollableWidth}"
-                            ViewportSize="{TemplateBinding ViewportWidth}"
-                            Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" />
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
 
-            <Style TargetType="{x:Type ScrollViewer}">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <ScrollContentPresenter Grid.Column="0" />
-                                <ScrollBar
-                            x:Name="PART_VerticalScrollBar"
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            Value="{TemplateBinding VerticalOffset}"
-                            Maximum="{TemplateBinding ScrollableHeight}"
-                            ViewportSize="{TemplateBinding ViewportHeight}"
-                            Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
-                                <ScrollBar
-                            x:Name="PART_HorizontalScrollBar"
-                            Orientation="Horizontal"
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Value="{TemplateBinding HorizontalOffset}"
-                            Maximum="{TemplateBinding ScrollableWidth}"
-                            ViewportSize="{TemplateBinding ViewportWidth}"
-                            Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" />
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+
+
 
 
         </ResourceDictionary>
@@ -231,7 +159,7 @@
                                 BorderBrush="Gray"
                                 BorderThickness="0.2"
                                 FontSize="16"
-                                Header="Quick Access">
+                                Header="Frequent">
                                 <WrapPanel MaxWidth="120" Background="Black">
                                     <Label
                                         Content="Add"
@@ -292,6 +220,104 @@
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="Folder Operations">
+                                <WrapPanel MaxWidth="120">
+                                    <Label
+                                        Content="Cut"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Copy"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Paste"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Delete"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Rename"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                </WrapPanel>
+                            </GroupBox>
+                            <GroupBox
+                                Margin="2"
+                                BorderBrush="Gray"
+                                BorderThickness="0.2"
+                                FontSize="16"
+                                Header="File Operations">
+                                <WrapPanel MaxWidth="120">
+                                    <Label
+                                        Content="Cut"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Copy"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Paste"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Delete"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Rename"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                </WrapPanel>
+                            </GroupBox>
                         </StackPanel>
                         <Grid Grid.Row="0" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
@@ -326,8 +352,9 @@
                         </Grid>
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50*" />
-                                <ColumnDefinition Width="50*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="8*" />
                             </Grid.ColumnDefinitions>
                             <TreeView
                                 x:Name="tv"
@@ -338,13 +365,18 @@
                                 Foreground="Ivory"
                                 Loaded="tv_Loaded"
                                 SelectedItemChanged="tv_SelectedItemChanged" />
-
+                            <GridSplitter
+                                Grid.Column="1"
+                                Width="3"
+                                HorizontalAlignment="Stretch" />
 
                             <ListView
                                 x:Name="lv"
-                                Grid.Column="1"
+                                Grid.Column="2"
                                 Background="Black"
-                                Foreground="Ivory">
+                                Foreground="Ivory"
+                                KeyUp="lv_KeyUp"
+                                MouseLeftButtonUp="lv_MouseLeftButtonUp">
                                 <ListView.ContextMenu>
                                     <ContextMenu
                                         Name="lvCM"
