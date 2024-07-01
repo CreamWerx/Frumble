@@ -19,7 +19,9 @@
                 <ResourceDictionary Source="Dictionary1.xaml" />
                 <ResourceDictionary Source="Dictionary2.xaml" />
                 <ResourceDictionary Source="DictionaryTab.xaml" />
+                <ResourceDictionary Source="DictionaryLabel.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -42,27 +44,69 @@
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="1" Orientation="Horizontal">
                             <GroupBox
-                                FontSize="16"
                                 Margin="2"
                                 BorderBrush="Gray"
                                 BorderThickness="0.2"
+                                FontSize="16"
                                 Header="Quick Access">
-                                <WrapPanel MaxWidth="120">
-                                    <Label FontSize="14" Content="Add" Foreground="LightGray" />
-                                    <Label FontSize="14" Content="Remove" Foreground="LightGray" />
-                                    <Label FontSize="14" Content="Not in use" Foreground="LightGray" />
+                                <WrapPanel MaxWidth="120" Background="Black">
+                                    <Label
+                                        Content="Add"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Remove"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Not in use"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
                             <GroupBox
-                                FontSize="16"
                                 Margin="2"
                                 BorderBrush="Gray"
                                 BorderThickness="0.2"
+                                FontSize="16"
                                 Header="Pinned">
                                 <WrapPanel MaxWidth="120">
-                                    <Label FontSize="14" Content="Add" Foreground="LightGray" />
-                                    <Label FontSize="14" Content="Remove" Foreground="LightGray" />
-                                    <Label FontSize="14" Content="Not in use" Foreground="LightGray" />
+                                    <Label
+                                        Content="Add"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Remove"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="Not in use"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
                         </StackPanel>
