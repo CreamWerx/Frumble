@@ -189,8 +189,8 @@ public partial class MainWindow
                 break;
             }
 
-            // Here we have the next NPTreeViewItem in previous item,
-            //  so update the listView, and expand.
+            // Here we have the next TViewItem in previous item,
+            //  so update the TreeView, and expand.
             HistoryNavigation = true;
             UpdateTreeViewItem(nPTreeViewItem);
             HistoryNavigation = true;
@@ -203,16 +203,17 @@ public partial class MainWindow
         {
             TViewItem targetItem = tmpTVI;
 
-            // IsSelected will cause targetItem to be updated with TVMethods.UpdateTreeViewItem()
-            //  via tree_SelectedItemChanged event
+            // IsSelected will cause targetItem to be updated with UpdateTreeViewItem()
+            //  via tv_SelectedItemChanged event
             HistoryNavigation = true;
             targetItem.IsSelected = true;
 
             // At this point we have the last element in the path and want to ensure it's visible.
             //  but we want as many of targetItem.Items as possible (if any) to be visible.
-            // In my case there is space for ~24 items, so utilize them all if possivle,
+            // In my case there is space for ~22 items, so utilize them all if possivle,
             //  while ensuring targetItem is still in view (at the top if necessary).
             int count = targetItem.Items.Count;
+            int maxVisibleItems = tv.VisibleCount;
             if (count > 0)
             {
                 targetItem = (TViewItem)(targetItem.Items[(count < 22) ? count - 1 : 21]);
@@ -264,11 +265,27 @@ public partial class MainWindow
                     var item = new TViewItem(dir);
                     selectetItem?.Items.Add(item);
                 }
+                ScrollTviewItemsIntoView(selectetItem);
             }
             catch (Exception ex)
             {
                 Log(ex.Message);
             }
         }
+    }
+
+    private void ScrollTviewItemsIntoView(TViewItem selectetItem)
+    {
+        int itemCount = selectetItem?.Items?.Count ?? 0;
+        if (selectetItem is null || itemCount <= 0)
+        {
+            return;
+        }
+        int targetItemIndex = 21;
+        if (itemCount < 22)
+        {
+            targetItemIndex = selectetItem.Items.Count -1;
+        }
+        ((TViewItem)selectetItem.Items[targetItemIndex]).BringIntoView();
     }
 }

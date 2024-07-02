@@ -166,6 +166,8 @@ public partial class MainWindow : Window
             }
             tbCurrentPath.Text = tViewItem.ItemPath;
             btnBack.IsEnabled = true;
+            tViewItem.IsExpanded = true;
+            ScrollTviewItemsIntoView(tViewItem);
             var popLV = PopulateListView(tViewItem.ItemPath, lv);
         }
         HistoryNavigation = false;
