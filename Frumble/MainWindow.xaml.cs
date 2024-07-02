@@ -19,7 +19,62 @@ namespace Frumble;
 /// </summary>
 public partial class MainWindow : Window
 {
-    IList? SelectedLVItems = null; 
+    bool dblclk = false;
+    IList? SelectedLVItems = null;
+
+    #region Stack Control
+    List<TViewItem> History = new();
+    
+    int currentHistoryPos = 0;
+
+    public bool HistoryNavigation { get; private set; } = false;
+
+    public TViewItem HistoryForward()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos++;
+        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
+        return History[currentHistoryPos];
+    }
+    public TViewItem HistoryBack()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos--;
+        btnBack.IsEnabled =  (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos < (History.Count -1)) ? true : false;
+        return History[currentHistoryPos];
+    }
+
+    private void btnBack_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+
+    }
+
+    private void btnBack_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        HistoryNavigation = true;
+        ((TViewItem)tv.Items[0]).IsExpanded = false;
+        var tvi = HistoryBack();
+        tbCurrentPath.Text = tvi.ItemPath;
+        TreeViewSeekToItem(tvi.ItemPath);
+    }
+
+    private void btnForward_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+
+    }
+
+    private void btnForward_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        HistoryNavigation = true;
+        ((TViewItem)tv.Items[0]).IsExpanded = false;
+        var tvi = HistoryForward();
+        tbCurrentPath.Text = tvi.ItemPath;
+        TreeViewSeekToItem(tvi.ItemPath);
+    }
+    #endregion
+
     public MainWindow()
     {
         InitializeComponent();
@@ -55,6 +110,8 @@ public partial class MainWindow : Window
     {
         ListDrives(tv);
         BuildLVContextMenu();
+        btnBack.Content = "<";
+        btnForward.Content = ">";
     }
 
     private void LVMenuItem_Clicked(object? sender, string e)
@@ -101,9 +158,17 @@ public partial class MainWindow : Window
         var upTV = UpdateTViewItem(tViewItem);
         if (upTV.success)
         {
+            if (!HistoryNavigation)
+            {
+                History.Add(tViewItem);
+                currentHistoryPos = History.Count -1;
+                btnForward.IsEnabled = false;
+            }
             tbCurrentPath.Text = tViewItem.ItemPath;
+            btnBack.IsEnabled = true;
             var popLV = PopulateListView(tViewItem.ItemPath, lv);
         }
+        HistoryNavigation = false;
     }
 
     private void lvCM_Opened(object sender, RoutedEventArgs e)
@@ -162,7 +227,10 @@ public partial class MainWindow : Window
         WrapPanel wrapPanel = (WrapPanel)labelButton.Parent;//
         GroupBox groupBox = (GroupBox)wrapPanel.Parent;//.GetType().ToString();
         string gbTitle = groupBox.Header.ToString();
-        Title = gbTitle + " - " + labelButton.Content.ToString();
+        if (PerformAction(gbTitle, labelButton.Content.ToString()))
+        {
+            foPasteOp.Background = Brushes.Transparent;
+        }
     }
 
     private void Label_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -190,6 +258,11 @@ public partial class MainWindow : Window
 
     private void lv_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
+        if (dblclk)
+        {
+            dblclk = false;
+            return;
+        }
         if (e.Source is ListView)
         {
             lv.UnselectAll();
@@ -207,8 +280,28 @@ public partial class MainWindow : Window
             }
             else if (e.Key == Key.C)
             {
-                //CommonMethods.CopyViewItemPathsToClipboard(CommonMethods.GetCurrentListView(tabControl));
+                var selectedItems = lv.SelectedItems;
+                if (selectedItems.Count > 0)
+                {
+                    foPasteOp.Background = Brushes.DarkOrange; 
+                }
             }
         }
     }
+
+    private void lv_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.Source is ListView)
+        {
+            //foreach (var item in lv.Items)
+            //{
+            //    ((LViewItem)item).IsSelected = true;
+            //}
+            lv.SelectAll();
+        }
+        SetFooter(lv.SelectedItems.Count);
+        dblclk = true;
+    }
+
+    
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -42,6 +43,21 @@ public partial class MainWindow
             Error(ex.Message);
             return (false, 0);
         }
+    }
+
+    public bool PerformAction(string actionOn, string action)
+    {
+        Log($"{actionOn} {action}");
+        if (actionOn.Contains("File") && action == "Paste")
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void Log(string v)
+    {
+        Debug.WriteLine(v);
     }
 
     public (bool success, int count) PopulateListView(string dirPath, ListView listView)
@@ -143,5 +159,116 @@ public partial class MainWindow
     {
         string collective = (count == 1) ? "item" : "items";
         footer.Text = $"{count} {collective} selected";
+    }
+
+    private bool TreeViewSeekToItem(string path)
+    {
+        HistoryNavigation = true;
+        var pathSplit = path.Split(System.IO.Path.DirectorySeparatorChar);
+        if (pathSplit is null)
+        {
+            return false;
+        }
+        TViewItem? tmpTVI = GetTVIByHeader(tv, pathSplit[0]);
+        if (tmpTVI is null)
+        {
+            return false;
+        }
+        UpdateTreeViewItem(tmpTVI);
+        tmpTVI.IsExpanded = true;
+
+        // Here we have the first NPTreeViewItem in TreeView
+        bool success = true;
+        for (int i = 1; i < pathSplit.Length; i++)
+        {
+            TViewItem? nPTreeViewItem = GetTVIByHeader(tmpTVI, pathSplit[i]);
+            if (nPTreeViewItem is null)
+            {
+                Log("Searching tree failed");
+                success = false;
+                break;
+            }
+
+            // Here we have the next NPTreeViewItem in previous item,
+            //  so update the listView, and expand.
+            HistoryNavigation = true;
+            UpdateTreeViewItem(nPTreeViewItem);
+            HistoryNavigation = true;
+            nPTreeViewItem.IsExpanded = true;
+            tmpTVI = nPTreeViewItem;
+        }
+
+        // Perhaps GetTVIByHeader() failed
+        if (success)
+        {
+            TViewItem targetItem = tmpTVI;
+
+            // IsSelected will cause targetItem to be updated with TVMethods.UpdateTreeViewItem()
+            //  via tree_SelectedItemChanged event
+            HistoryNavigation = true;
+            targetItem.IsSelected = true;
+
+            // At this point we have the last element in the path and want to ensure it's visible.
+            //  but we want as many of targetItem.Items as possible (if any) to be visible.
+            // In my case there is space for ~24 items, so utilize them all if possivle,
+            //  while ensuring targetItem is still in view (at the top if necessary).
+            int count = targetItem.Items.Count;
+            if (count > 0)
+            {
+                targetItem = (TViewItem)(targetItem.Items[(count < 22) ? count - 1 : 21]);
+            }
+            targetItem.BringIntoView();
+            return true;
+        }
+        return false;
+    }
+
+    // Method overloaded tp accommodate first first call.
+    private TViewItem? GetTVIByHeader(TreeView tmpTV, string headerName)
+    {
+        foreach (var item in tmpTV.Items)
+        {
+            var tvi = (TViewItem)item;
+            if ((tvi.Header as string) == headerName)
+            {
+                return tvi;
+            }
+        }
+        return null;
+    }
+
+    private TViewItem? GetTVIByHeader(TViewItem tmpTVI, string headerName)
+    {
+        foreach (var item in tmpTVI.Items)
+        {
+            var tvi = (TViewItem)item;
+            if ((tvi.Header as string) == headerName)
+            {
+                return tvi;
+            }
+        }
+        return null;
+    }
+
+    internal void UpdateTreeViewItem(TViewItem selectetItem)
+    {
+        string? path = selectetItem?.ItemPath;
+        if (path != null)
+        {
+            try
+            {
+                selectetItem.Items.Clear();
+                List<string> dirList = Directory.EnumerateDirectories(path, "*", new EnumerationOptions { IgnoreInaccessible = true }).ToList();
+                foreach (var dir in dirList)
+                {
+                    var item = new TViewItem(dir);
+                    selectetItem?.Items.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.Message);
+            }
+        }
     }
 }

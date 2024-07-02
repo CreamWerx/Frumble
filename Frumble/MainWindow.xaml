@@ -293,6 +293,7 @@
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                     <Label
+                                        x:Name="foPasteOp"
                                         Content="Paste"
                                         FontSize="14"
                                         Foreground="LightGray"
@@ -321,13 +322,40 @@
                         </StackPanel>
                         <Grid Grid.Row="0" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="45" />
                                 <ColumnDefinition Width="8*" />
                                 <ColumnDefinition Width="30" />
                                 <ColumnDefinition Width="2*" />
                             </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <Label
+                                    x:Name="btnBack"
+                                    Content="B"
+                                    IsEnabled="False"
+                                    FontSize="20"
+                                    FontStretch="UltraExpanded"
+                                    FontWeight="UltraBold"
+                                    Foreground="LightGray"
+                                    MouseDown="btnBack_MouseDown"
+                                    MouseEnter="Label_MouseEnter"
+                                    MouseLeave="Label_MouseLeave"
+                                    MouseUp="btnBack_MouseUp" />
+                                <Label
+                                    x:Name="btnForward"
+                                    Content="F"
+                                    IsEnabled="False"
+                                    FontSize="20"
+                                    FontStretch="UltraExpanded"
+                                    FontWeight="UltraBold"
+                                    Foreground="LightGray"
+                                    MouseDown="btnForward_MouseDown"
+                                    MouseEnter="Label_MouseEnter"
+                                    MouseLeave="Label_MouseLeave"
+                                    MouseUp="btnForward_MouseUp" />
+                            </StackPanel>
                             <TextBox
                                 x:Name="tbCurrentPath"
-                                Grid.Column="0"
+                                Grid.Column="1"
                                 Padding="10,0,0,0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
@@ -335,13 +363,13 @@
                                 TextBlock.Foreground="LightGray" />
                             <CheckBox
                                 x:Name="cboxSearch"
-                                Grid.Column="1"
+                                Grid.Column="2"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 ToolTip="Search Subdirectories" />
                             <TextBox
                                 x:Name="tbSearch"
-                                Grid.Column="2"
+                                Grid.Column="3"
                                 Padding="10,0,0,0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
@@ -376,6 +404,7 @@
                                 Background="Black"
                                 Foreground="Ivory"
                                 KeyUp="lv_KeyUp"
+                                MouseDoubleClick="lv_MouseDoubleClick"
                                 MouseLeftButtonUp="lv_MouseLeftButtonUp">
                                 <ListView.ContextMenu>
                                     <ContextMenu

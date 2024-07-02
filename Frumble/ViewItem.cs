@@ -25,7 +25,7 @@ public class TViewItem : TreeViewItem
         {
             ItemName = itemPath;
         }
-        Header = ItemName;
+        Header = ItemName.TrimEnd('\\');
         Background = Brushes.Black;
         ToolTip = ItemPath;
         Style = (Style)Application.Current.MainWindow.FindResource("PrimaryTVI");
