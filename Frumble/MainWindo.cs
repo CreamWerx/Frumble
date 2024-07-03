@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace Frumble;
 public partial class MainWindow
@@ -47,12 +49,51 @@ public partial class MainWindow
 
     public bool PerformAction(string actionOn, string action)
     {
-        Log($"{actionOn} {action}");
-        if (actionOn.Contains("File") && action == "Paste")
+        return true;
+        switch (actionOn)
         {
-            return true;
+            case "Frequent":
+                return Frequent(action);
+                break;
         }
         return false;
+    }
+
+    private void LabelSuccess(Label label, bool success = true)
+    {
+        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
+        label.Background = new SolidColorBrush(fadeColor);
+        label.Background.BeginAnimation(SolidColorBrush.ColorProperty, ca);
+    }
+
+    private bool Frequent(string action)
+    {
+        switch (action)
+        {
+            case "Add":
+                return AddFrequent();
+        }
+        return false;
+    }
+
+    private bool AddFrequent()
+    {
+        try
+        {
+            TViewItem tvi = ((TViewItem)tv.SelectedItem);
+            if (tvi is not null)
+            {
+                File.AppendAllText(tbFrequentPath.Text, $"{tvi.ItemPath}{Environment.NewLine}");
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Log(ex.Message);
+            return false;
+        }
     }
 
     private void Log(string v)
@@ -213,7 +254,10 @@ public partial class MainWindow
             // In my case there is space for ~22 items, so utilize them all if possivle,
             //  while ensuring targetItem is still in view (at the top if necessary).
             int count = targetItem.Items.Count;
-            int maxVisibleItems = tv.VisibleCount;
+            //int tvHeight = (int)tv.ActualHeight;
+            //int tvItemHeight = (int)((TViewItem)tv.Items[0]).ActualHeight;
+            //int maxVisibleItems = tvHeight / tvItemHeight;
+            //targetItem.Focus();
             if (count > 0)
             {
                 targetItem = (TViewItem)(targetItem.Items[(count < 22) ? count - 1 : 21]);
@@ -276,6 +320,8 @@ public partial class MainWindow
 
     private void ScrollTviewItemsIntoView(TViewItem selectetItem)
     {
+        //selectetItem.Focus();
+        //return;
         int itemCount = selectetItem?.Items?.Count ?? 0;
         if (selectetItem is null || itemCount <= 0)
         {

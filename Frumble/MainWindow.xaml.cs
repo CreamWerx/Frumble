@@ -21,10 +21,11 @@ public partial class MainWindow : Window
 {
     bool dblclk = false;
     IList? SelectedLVItems = null;
-
+    TViewItem Special;
     #region Stack Control
     List<TViewItem> History = new();
-    
+
+       
     int currentHistoryPos = 0;
 
     public bool HistoryNavigation { get; private set; } = false;
@@ -108,10 +109,33 @@ public partial class MainWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        LoadFrequent(tv);
         ListDrives(tv);
         BuildLVContextMenu();
         btnBack.Content = "<";
         btnForward.Content = ">";
+    }
+
+    private void LoadFrequent(TreeView tv)
+    {
+        try
+        {
+            Special = new TViewItem(true, "Frequent");
+            tv.Items.Add(Special);
+            var paths = File.ReadAllLines(tbFrequentPath.Text);
+            foreach (var item in paths)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                {
+                    TViewItem tViewItem = new TViewItem(item);
+                    Special.Items.Add(tViewItem);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Error(ex.Message);
+        }
     }
 
     private void LVMenuItem_Clicked(object? sender, string e)
@@ -120,18 +144,6 @@ public partial class MainWindow : Window
         string tmp = $"open \"{selectedItem}\" with \"{e}\"";
         //tmpOutput.Text = tmp;
     }
-
-    //private void MenuItem_Click(object sender, RoutedEventArgs e)
-    //{
-    //    if (SelectedLVItems != null)
-    //    {
-    //        foreach (var item in SelectedLVItems)
-    //        {
-    //            var lViewItem = (LViewItem)item;
-    //            Debug.WriteLine($"{((MenuItem)e.Source).Header} {lViewItem.ItemPath}");
-    //        } 
-    //    }
-    //}
 
     private void TViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -155,6 +167,7 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         TViewItem tViewItem = (TViewItem)((TreeView)sender).SelectedItem;
+        if ((string)tViewItem.Header == "Frequent") { return; }
         var upTV = UpdateTViewItem(tViewItem);
         if (upTV.success)
         {
@@ -231,7 +244,12 @@ public partial class MainWindow : Window
         string gbTitle = groupBox.Header.ToString();
         if (PerformAction(gbTitle, labelButton.Content.ToString()))
         {
-            foPasteOp.Background = Brushes.Transparent;
+            LabelSuccess(labelButton, false);
+            //foPasteOp.Background = Brushes.Transparent;
+        }
+        else
+        {
+
         }
     }
 
@@ -242,12 +260,16 @@ public partial class MainWindow : Window
 
     private void Label_MouseEnter(object sender, MouseEventArgs e)
     {
-        ((Label)sender).Foreground = Brushes.Ivory;
+        var label = (Label)sender;
+        label.FontWeight = FontWeights.Bold;
+        label.Foreground = Brushes.White;
     }
 
     private void Label_MouseLeave(object sender, MouseEventArgs e)
     {
-        ((Label)sender).Foreground = Brushes.LightGray;
+        var label = (Label)sender;
+        label.FontWeight = FontWeights.Normal;
+        label.Foreground = Brushes.LightGray;
     }
 
     private void tv_Loaded(object sender, RoutedEventArgs e)

@@ -15,6 +15,16 @@ public class TViewItem : TreeViewItem
     public string ItemPath { get; set; }
     public string ItemName { get; set; }
 
+    public TViewItem(bool isSpecial, string header)
+    {
+        ItemName = header;
+        Header = header;
+        ItemPath = "Special";
+        Background = Brushes.Black;
+        ToolTip = ItemPath;
+        Style = (Style)Application.Current.MainWindow.FindResource("PrimaryTVI");
+    }
+
     public TViewItem(string itemPath)
     {
         ItemPath = itemPath;

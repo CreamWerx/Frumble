@@ -160,7 +160,7 @@
                                 BorderThickness="0.2"
                                 FontSize="16"
                                 Header="Frequent">
-                                <WrapPanel MaxWidth="120" Background="Black">
+                                <WrapPanel Orientation="Vertical">
                                     <Label
                                         Content="Add"
                                         FontSize="14"
@@ -171,14 +171,6 @@
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                     <Label
                                         Content="Remove"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
-                                    <Label
-                                        Content="Not in use"
                                         FontSize="14"
                                         Foreground="LightGray"
                                         MouseEnter="Label_MouseEnter"
@@ -193,7 +185,7 @@
                                 BorderThickness="0.2"
                                 FontSize="16"
                                 Header="Pinned">
-                                <WrapPanel MaxWidth="120">
+                                <WrapPanel Orientation="Vertical">
                                     <Label
                                         Content="Add"
                                         FontSize="14"
@@ -210,14 +202,7 @@
                                         MouseLeave="Label_MouseLeave"
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
-                                    <Label
-                                        Content="Not in use"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+
                                 </WrapPanel>
                             </GroupBox>
                             <GroupBox
@@ -226,7 +211,7 @@
                                 BorderThickness="0.2"
                                 FontSize="16"
                                 Header="Folder Operations">
-                                <WrapPanel MaxWidth="120">
+                                <WrapPanel Orientation="Vertical">
                                     <Label
                                         Content="Cut"
                                         FontSize="14"
@@ -267,6 +252,14 @@
                                         MouseLeave="Label_MouseLeave"
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <Label
+                                        Content="New"
+                                        FontSize="14"
+                                        Foreground="LightGray"
+                                        MouseEnter="Label_MouseEnter"
+                                        MouseLeave="Label_MouseLeave"
+                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
                             <GroupBox
@@ -275,7 +268,7 @@
                                 BorderThickness="0.2"
                                 FontSize="16"
                                 Header="File Operations">
-                                <WrapPanel MaxWidth="120">
+                                <WrapPanel Orientation="Vertical">
                                     <Label
                                         Content="Cut"
                                         FontSize="14"
@@ -331,11 +324,11 @@
                                 <Label
                                     x:Name="btnBack"
                                     Content="B"
-                                    IsEnabled="False"
                                     FontSize="20"
                                     FontStretch="UltraExpanded"
                                     FontWeight="UltraBold"
                                     Foreground="LightGray"
+                                    IsEnabled="False"
                                     MouseDown="btnBack_MouseDown"
                                     MouseEnter="Label_MouseEnter"
                                     MouseLeave="Label_MouseLeave"
@@ -343,11 +336,11 @@
                                 <Label
                                     x:Name="btnForward"
                                     Content="F"
-                                    IsEnabled="False"
                                     FontSize="20"
                                     FontStretch="UltraExpanded"
                                     FontWeight="UltraBold"
                                     Foreground="LightGray"
+                                    IsEnabled="False"
                                     MouseDown="btnForward_MouseDown"
                                     MouseEnter="Label_MouseEnter"
                                     MouseLeave="Label_MouseLeave"
@@ -461,6 +454,22 @@
                                 Background="Black"
                                 Foreground="Ivory"
                                 Text="OpenWithPaths.txt" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Path to file containing frequent folder paths" />
+                            <TextBox
+                                x:Name="tbFrequentPath"
+                                Margin="10"
+                                Padding="10,0,10,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Text="FrequentPaths.txt" />
                         </StackPanel>
                     </Grid>
                 </TabItem>
