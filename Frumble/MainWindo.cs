@@ -59,6 +59,23 @@ public partial class MainWindow
         return false;
     }
 
+    public TViewItem HistoryForward()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos++;
+        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
+        return History[currentHistoryPos];
+    }
+    public TViewItem HistoryBack()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos--;
+        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
+        return History[currentHistoryPos];
+    }
+
     private void LabelSuccess(Label label, bool success = true)
     {
         Color fadeColor = success ? Colors.LightGreen : Colors.Red;
@@ -96,9 +113,9 @@ public partial class MainWindow
         }
     }
 
-    private void Log(string v)
+    private void Log(string msg)
     {
-        Debug.WriteLine(v);
+        tblLog.AppendText(msg);
     }
 
     public (bool success, int count) PopulateListView(string dirPath, ListView listView)

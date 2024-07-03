@@ -29,23 +29,7 @@ public partial class MainWindow : Window
     int currentHistoryPos = 0;
 
     public bool HistoryNavigation { get; private set; } = false;
-
-    public TViewItem HistoryForward()
-    {
-        HistoryNavigation = true;
-        currentHistoryPos++;
-        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
-        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
-        return History[currentHistoryPos];
-    }
-    public TViewItem HistoryBack()
-    {
-        HistoryNavigation = true;
-        currentHistoryPos--;
-        btnBack.IsEnabled =  (currentHistoryPos > 0) ? true : false;
-        btnForward.IsEnabled = (currentHistoryPos < (History.Count -1)) ? true : false;
-        return History[currentHistoryPos];
-    }
+    public bool DoubleClickWasItem { get; private set; }
 
     private void btnBack_MouseDown(object sender, MouseButtonEventArgs e)
     {
@@ -109,9 +93,13 @@ public partial class MainWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        Log("App Start");
         LoadFrequent(tv);
+        Log("Loaded frequent folders");
         ListDrives(tv);
+        Log("Drives listed");
         BuildLVContextMenu();
+        Log("File list view context menu built");
         btnBack.Content = "<";
         btnForward.Content = ">";
     }
@@ -147,6 +135,7 @@ public partial class MainWindow : Window
 
     private void TViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        e.Handled = true;
         if (e.ChangedButton == MouseButton.Left)
         {
             TViewItem lViewItem = (TViewItem)sender;
@@ -159,8 +148,12 @@ public partial class MainWindow : Window
 
     private void LViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        
+        DoubleClickWasItem = true;
+        //Log("lvi fired");
         LViewItem lViewItem = (LViewItem)sender;
         CommonMethods.OpenWithDefaultApp(lViewItem.ItemPath);
+        Log($"Open file: {lViewItem.ItemPath}");
     }
 
     private void tv_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -244,7 +237,7 @@ public partial class MainWindow : Window
         string gbTitle = groupBox.Header.ToString();
         if (PerformAction(gbTitle, labelButton.Content.ToString()))
         {
-            LabelSuccess(labelButton, false);
+            LabelSuccess(labelButton, true);
             //foPasteOp.Background = Brushes.Transparent;
         }
         else
@@ -315,6 +308,12 @@ public partial class MainWindow : Window
 
     private void lv_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        if (DoubleClickWasItem)
+        {
+            DoubleClickWasItem = false;
+            return;
+        }
+        //Log("lv fired");
         if (e.Source is ListView)
         {
             //foreach (var item in lv.Items)

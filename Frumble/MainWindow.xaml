@@ -473,6 +473,14 @@
                         </StackPanel>
                     </Grid>
                 </TabItem>
+                <TabItem Header="Log" Style="{StaticResource Vertical}">
+                    <Grid>
+                        <TextBlock
+                            x:Name="tblLog"
+                            Margin="20"
+                            Padding="10" />
+                    </Grid>
+                </TabItem>
             </TabControl>
         </Grid>
     </Grid>
