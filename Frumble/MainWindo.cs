@@ -23,7 +23,8 @@ public partial class MainWindow
             foreach (var dir in directories)
             {
                 var tvi = new TViewItem(dir);
-                tvi.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                //tvi.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                tvi.DoubleClicked += TViewItem_DoubleClicked;
                 tViewItem.Items.Add(tvi);
             }
             return (true, directories.Count());
@@ -127,8 +128,10 @@ public partial class MainWindow
             foreach (var file in files)
             {
                 var lViewItem = new LViewItem(file);
-                lViewItem.MouseDoubleClick += LViewItem_MouseDoubleClick;
+                //lViewItem.MouseDoubleClick += LViewItem_MouseDoubleClick;
+                lViewItem.PreviewMouseLeftButtonDown += LViewItem_PreviewMouseLeftButtonDown;
                 lViewItem.MouseEnter += LViewItem_MouseEnter;
+                //lViewItem.MouseLeftButtonDown += LViewItem_MouseLeftButtonDown;
                 listView.Items.Add(lViewItem);
             }
             return (true, files.Count());
@@ -156,7 +159,8 @@ public partial class MainWindow
             {
                 TViewItem tViewItem = new TViewItem(drive);
                 tViewItem.Foreground = Brushes.Ivory;
-                tViewItem.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                //tViewItem.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                tViewItem.DoubleClicked += TViewItem_DoubleClicked;
                 tree.Dispatcher.Invoke(() => tree.Items.Add(tViewItem));
             }
             return true;
@@ -177,8 +181,8 @@ public partial class MainWindow
     {
         try
         {
-            var paths = File.ReadAllLines(openWithPath.Text);
-            foreach (var item in paths)
+            var openWithPaths = File.ReadAllLines(openWithPath.Text);
+            foreach (var item in openWithPaths)
             {
                 if (!string.IsNullOrWhiteSpace(item))
                 {
@@ -189,9 +193,36 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            Error(ex.Message);
+            Log(ex.Message);
+        }
+
+        try
+        {
+            var sendToPaths = File.ReadAllLines(tbSendToPath.Text);
+            foreach (var item in sendToPaths)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                {
+                    MenuItemEx menuItem = CreateSendToMenuItem(item);
+                    sendTo.Items.Add(menuItem);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log(ex.Message);
         }
     }
+
+    private MenuItemEx CreateSendToMenuItem(string itemPath)
+    {
+        var menuItem = new MenuItemEx(itemPath, true);
+        menuItem.Clicked += LVSendToMenuItem_Clicked;
+
+        return menuItem;
+    }
+
+    
 
     private (bool success, int count) SearchCurrentDirectory(string text)
     {
@@ -208,7 +239,7 @@ public partial class MainWindow
     private MenuItemEx CreateOpenWithMenuItem(string exePath)
     {
         var menuItem = new MenuItemEx(exePath);
-        menuItem.Clicked += LVMenuItem_Clicked;
+        menuItem.Clicked += LVOpenWithMenuItem_Clicked;
 
         return menuItem;
     }

@@ -418,6 +418,13 @@
                                                 Foreground="Ivory"
                                                 Header="Add Selected App" />
                                         </MenuItem>
+                                        <MenuItem
+                                            x:Name="sendTo"
+                                            Background="Black"
+                                            Foreground="Ivory"
+                                            Header="Send To" />
+
+
                                     </ContextMenu>
                                 </ListView.ContextMenu>
                             </ListView>
@@ -433,6 +440,11 @@
                 <TabItem Header="Options" Style="{StaticResource Vertical}">
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
@@ -471,14 +483,60 @@
                                 Foreground="Ivory"
                                 Text="FrequentPaths.txt" />
                         </StackPanel>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Path to file containing send to folder paths" />
+                            <TextBox
+                                x:Name="tbSendToPath"
+                                Margin="10"
+                                Padding="10,0,10,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Black"
+                                Foreground="Ivory"
+                                Text="SendToPaths.txt" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Should logs be saved on exit?" />
+                            <CheckBox
+                                x:Name="chboxAutoSaveLogs"
+                                Margin="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Log" Style="{StaticResource Vertical}">
                     <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="40" />
+                        </Grid.RowDefinitions>
                         <TextBlock
                             x:Name="tblLog"
                             Margin="20"
                             Padding="10" />
+                        <StackPanel
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="btnSaveLog"
+                                Margin="5"
+                                Content="Save" />
+                            <Button
+                                x:Name="btnClearLog"
+                                Margin="5"
+                                Click="btnClearLog_Click"
+                                Content="Clear" />
+                        </StackPanel>
                     </Grid>
                 </TabItem>
             </TabControl>

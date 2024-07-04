@@ -12,6 +12,7 @@ using System.Windows.Media;
 namespace Frumble;
 public class TViewItem : TreeViewItem
 {
+    public event EventHandler<TViewItem>? DoubleClicked;
     public string ItemPath { get; set; }
     public string ItemName { get; set; }
 
@@ -40,7 +41,12 @@ public class TViewItem : TreeViewItem
         ToolTip = ItemPath;
         Style = (Style)Application.Current.MainWindow.FindResource("PrimaryTVI");
     }
-    
+
+    protected override void OnMouseDoubleClick(MouseButtonEventArgs e)
+    {
+        DoubleClicked.Invoke(this, this);
+    }
+
     public override string ToString()
     {
         return ItemName;

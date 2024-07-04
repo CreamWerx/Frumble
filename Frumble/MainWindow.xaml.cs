@@ -126,11 +126,34 @@ public partial class MainWindow : Window
         }
     }
 
-    private void LVMenuItem_Clicked(object? sender, string e)
+    private void LVOpenWithMenuItem_Clicked(object? sender, string e)
     {
-        string selectedItem = ((LViewItem)lv.SelectedItem).ItemPath;
-        string tmp = $"open \"{selectedItem}\" with \"{e}\"";
-        //tmpOutput.Text = tmp;
+        string selectedItemPath = ((LViewItem)lv.SelectedItem).ItemPath;
+        string tmp = $"open \"{selectedItemPath}\" with \"{e}\"";
+        CommonMethods.OpenWith(e, lv.SelectedItems);
+        Log(tmp);
+    }
+
+    private void LVSendToMenuItem_Clicked(object? sender, string e)
+    {
+        string selectedItemPath = ((LViewItem)lv.SelectedItem).ItemPath;
+        string fileName = System.IO.Path.GetFileName(selectedItemPath);
+        string newFilePath = System.IO.Path.Combine(e, fileName);
+        string tmp = $"send \"{selectedItemPath}\" to \"{newFilePath}\"";
+        File.Copy(selectedItemPath, newFilePath);
+        bool success = ConfirmCopy(newFilePath);
+        Log(tmp);
+        if (success)
+        {
+            Log("Success");
+            return;
+        }
+        Log("Failed");
+    }
+
+    private bool ConfirmCopy(string newFilePath)
+    {
+        return File.Exists(newFilePath);
     }
 
     private void TViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -146,14 +169,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private void LViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    private void TViewItem_DoubleClicked(object? sender, TViewItem e)
     {
+
         
-        DoubleClickWasItem = true;
-        //Log("lvi fired");
-        LViewItem lViewItem = (LViewItem)sender;
-        CommonMethods.OpenWithDefaultApp(lViewItem.ItemPath);
-        Log($"Open file: {lViewItem.ItemPath}");
+        if (e.IsSelected)
+        {
+            Log("TViewItem_DoubleClicked");
+            CommonMethods.OpenWithDefaultApp(e.ItemPath);
+        }
+    }
+
+    private void LViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            e.Handled = true;
+            LViewItem lViewItem = (LViewItem)sender;
+            CommonMethods.OpenWithDefaultApp(lViewItem.ItemPath);
+            Log($"Open file: {lViewItem.ItemPath}");
+        }
     }
 
     private void tv_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -326,5 +361,13 @@ public partial class MainWindow : Window
         dblclk = true;
     }
 
-    
+    private void btnClearLog_Click(object sender, RoutedEventArgs e)
+    {
+        tblLog.Text = "";
+    }
+
+    private void MenuItem_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

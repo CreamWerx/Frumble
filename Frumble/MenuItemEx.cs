@@ -14,7 +14,8 @@ public class MenuItemEx : MenuItem
 {
     public event EventHandler<string>? Clicked;
     public string ItemName { get; set; }
-    public string ExePath { get; set; }
+    public string? ExePath { get; set; }
+    public string ItemPath { get; set; }
 
     public MenuItemEx(string exePath)
     {
@@ -25,9 +26,19 @@ public class MenuItemEx : MenuItem
         Foreground = Application.Current.MainWindow.Foreground;
     }
 
+    public MenuItemEx(string itemPath, bool isNormal)
+    {
+        ItemPath = itemPath;
+        ItemName = Path.GetFileName(itemPath);
+        Header = ItemName;
+        Background = Application.Current.MainWindow.Background;
+        Foreground = Application.Current.MainWindow.Foreground;
+    }
+
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
-        Clicked?.Invoke(this, ExePath);
+        e.Handled = true;
+        Clicked?.Invoke(this, ExePath ?? ItemPath);
     }
 
     public override string ToString()
