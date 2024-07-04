@@ -116,7 +116,7 @@ public partial class MainWindow
 
     private void Log(string msg)
     {
-        tblLog.AppendText(msg);
+        Dispatcher.Invoke(() => tblLog.AppendText(msg));
     }
 
     public (bool success, int count) PopulateListView(string dirPath, ListView listView)
@@ -221,8 +221,6 @@ public partial class MainWindow
 
         return menuItem;
     }
-
-    
 
     private (bool success, int count) SearchCurrentDirectory(string text)
     {

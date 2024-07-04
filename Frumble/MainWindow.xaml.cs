@@ -9,9 +9,9 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Frumble;
 /// <summary>
@@ -136,19 +136,45 @@ public partial class MainWindow : Window
 
     private void LVSendToMenuItem_Clicked(object? sender, string e)
     {
-        string selectedItemPath = ((LViewItem)lv.SelectedItem).ItemPath;
+        lvCM.IsOpen = false;
+        var selectedItem = ((LViewItem)lv.SelectedItem);
+        lv.UnselectAll();
+        string selectedItemPath = selectedItem.ItemPath;
         string fileName = System.IO.Path.GetFileName(selectedItemPath);
-        string newFilePath = System.IO.Path.Combine(e, fileName);
+        string newFilePath = Path.Combine(e, fileName);
         string tmp = $"send \"{selectedItemPath}\" to \"{newFilePath}\"";
-        File.Copy(selectedItemPath, newFilePath);
-        bool success = ConfirmCopy(newFilePath);
-        Log(tmp);
-        if (success)
+        Task.Run(()=> SendTo(selectedItem, newFilePath, tmp));
+    }
+
+    private void SendTo(LViewItem selectedItem, string newFilePath, string tmp)
+    {
+        try
         {
-            Log("Success");
-            return;
+            File.Copy(selectedItem.ItemPath, newFilePath);
+            bool success = ConfirmCopy(newFilePath);
+            Log(tmp);
+            if (success)
+            {
+                Log("Success");
+                ItemSuccess(selectedItem, true);
+                return;
+            }
+            Log("Failed");
+            ItemSuccess(selectedItem, false);
         }
-        Log("Failed");
+        catch (Exception ex)
+        {
+            Log($"Failed: {ex.Message}");
+            ItemSuccess(selectedItem, false);
+        }
+    }
+
+    private void ItemSuccess(LViewItem selectedItem, bool success)
+    {
+        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        //ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
+        Dispatcher.Invoke(() => selectedItem.Background = new SolidColorBrush(fadeColor));
+        Dispatcher.Invoke(() => selectedItem.Background.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)))));  
     }
 
     private bool ConfirmCopy(string newFilePath)
