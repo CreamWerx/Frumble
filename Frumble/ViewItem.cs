@@ -30,14 +30,14 @@ public class TViewItem : TreeViewItem
     public TViewItem(string itemPath)
     {
         ItemPath = itemPath;
-        ItemName = System.IO.Path.GetFileName(itemPath);
+        ItemName = System.IO.Path.GetFileName(itemPath.TrimEnd(Path.DirectorySeparatorChar));
 
         // ItemPath could be the drive root (C:\\) therefore causing an issue
         if (string.IsNullOrWhiteSpace(ItemName))
         {
-            ItemName = itemPath;
+            ItemName = itemPath.TrimEnd(Path.DirectorySeparatorChar);
         }
-        Header = ItemName.TrimEnd('\\');
+        Header = ItemName.TrimEnd(Path.DirectorySeparatorChar);
         Background = Brushes.Transparent;
         Foreground = Brushes.Gold;
         ToolTip = ItemPath;
@@ -46,7 +46,7 @@ public class TViewItem : TreeViewItem
 
     protected override void OnMouseDoubleClick(MouseButtonEventArgs e)
     {
-        DoubleClicked.Invoke(this, this);
+        DoubleClicked?.Invoke(this, this);
     }
 
     public override string ToString()

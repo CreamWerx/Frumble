@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,90 +15,6 @@ using System.Windows.Media.Animation;
 namespace Frumble;
 public partial class MainWindow
 {
-    private (bool success, int count) UpdateTViewItem(TViewItem tViewItem)
-    {
-        tViewItem.Items.Clear();
-        try
-        {
-            var directories = Directory.EnumerateDirectories(tViewItem.ItemPath, "*", new EnumerationOptions { IgnoreInaccessible = true });
-            foreach (var dir in directories)
-            {
-                var tvi = new TViewItem(dir);
-                //tvi.MouseDoubleClick += TViewItem_MouseDoubleClick;
-                tvi.DoubleClicked += TViewItem_DoubleClicked;
-                tViewItem.Items.Add(tvi);
-            }
-            return (true, directories.Count());
-        }
-        catch (UnauthorizedAccessException)
-        {
-            tViewItem.ToolTip = new string("locked");
-            tViewItem.Foreground = Brushes.Red;
-            return (false, 0);
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.StartsWith("This drive is locked by BitLocker"))
-            {
-                tViewItem.Foreground = Brushes.Red;
-                tViewItem.ToolTip = "BitLocker";
-                return (false, 0);
-            }
-            Error(ex.Message);
-            return (false, 0);
-        }
-    }
-
-    public bool PerformAction(string actionOn, string action)
-    {
-        return true;
-        switch (actionOn)
-        {
-            case "Frequent":
-                return Frequent(action);
-                break;
-        }
-        return false;
-    }
-
-    public TViewItem HistoryForward()
-    {
-        HistoryNavigation = true;
-        currentHistoryPos++;
-        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
-        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
-        return History[currentHistoryPos];
-    }
-    public TViewItem HistoryBack()
-    {
-        HistoryNavigation = true;
-        currentHistoryPos--;
-        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
-        btnForward.IsEnabled = (currentHistoryPos <= (History.Count - 1)) ? true : false;
-        if (currentHistoryPos == -1)
-        {
-            currentHistoryPos = 0;
-        }
-        return History[currentHistoryPos];
-    }
-
-    private void LabelSuccess(Label label, bool success = true)
-    {
-        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
-        ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
-        label.Background = new SolidColorBrush(fadeColor);
-        label.Background.BeginAnimation(SolidColorBrush.ColorProperty, ca);
-    }
-
-    private bool Frequent(string action)
-    {
-        switch (action)
-        {
-            case "Add":
-                return AddFrequent();
-        }
-        return false;
-    }
 
     private bool AddFrequent()
     {
@@ -113,14 +30,46 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            Log(ex.Message);
+            //Log(ex.Message);
             return false;
         }
     }
 
-    private void Log(string msg)
+    private void BuildLVContextMenu()
     {
-        Dispatcher.Invoke(() => tblLog.AppendText(msg));
+        try
+        {
+            var openWithPaths = File.ReadAllLines(openWithPath.Text);
+            foreach (var item in openWithPaths)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                {
+                    MenuItemEx menuItem = CreateOpenWithMenuItem(item);
+                    openWith.Items.Add(menuItem);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //Log(ex.Message);
+        }
+
+        try
+        {
+            var sendToPaths = File.ReadAllLines(tbSendToPath.Text);
+            foreach (var item in sendToPaths)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                {
+                    MenuItemEx menuItem = CreateSendToMenuItem(item);
+                    sendTo.Items.Add(menuItem);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //Log(ex.Message);
+        }
     }
 
     void CollapseTreeviewItems(TreeViewItem Item)
@@ -134,6 +83,241 @@ public partial class MainWindow
             //if (item.HasItems)
             //    CollapseTreeviewItems(item);
         }
+    }
+
+    private bool ConfirmCopy(string newFilePath)
+    {
+        return File.Exists(newFilePath);
+    }
+
+    private void ControlSuccess(LViewItem control, bool success = true)
+    {
+        //LViewItem lvi = (LViewItem)control;
+        control.IsSelected = false;
+        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
+        control.Background = new SolidColorBrush(fadeColor);
+        control.Background.BeginAnimation(SolidColorBrush.ColorProperty, ca);
+        //lvi.IsSelected = true;
+    }
+
+    private MenuItemEx CreateSendToMenuItem(string itemPath)
+    {
+        var menuItem = new MenuItemEx(itemPath, true);
+        menuItem.Clicked += LVSendToMenuItem_Clicked;
+
+        return menuItem;
+    }
+    private MenuItemEx CreateOpenWithMenuItem(string exePath)
+    {
+        var menuItem = new MenuItemEx(exePath);
+        menuItem.Clicked += LVOpenWithMenuItem_Clicked;
+
+        return menuItem;
+    }
+
+    private void DisableRedundantMenuItems()
+    {
+        if (SelectedLVItems?.Count < 1) { openWith.IsEnabled = false; return; } else openWith.IsEnabled = true;
+        if (!((LViewItem)lv.SelectedItem).ItemPath.EndsWith(".exe")) addThisApp.IsEnabled = false; else addThisApp.IsEnabled = true;
+    }
+
+    private void Error(string message)
+    {
+        MessageBox.Show(message);
+    }
+
+    private bool FileOperation(string action)
+    {
+        switch (action)
+        {
+            case "Copy":
+                return FileOperationCopy().Result;
+            //return true;
+            case "Delete":
+                return FileOperationDelete();
+        }
+        return false;
+    }
+
+    private bool FileOperationDelete()
+    {
+        return false;
+    }
+
+    private async Task<bool> FileOperationCopy()
+    {
+        var copyItem = (LViewItem)lv.SelectedItem;
+        //ControlSuccess(copyItem, true);
+        //return true;
+        string? dir = Path.GetDirectoryName(copyItem.ItemPath);
+        if (string.IsNullOrWhiteSpace(dir))
+        {
+            ControlSuccess(copyItem, false);
+            return false;
+        }
+        string newName = GetNewName(copyItem.ItemName, "_copy", true);
+        string newPath = Path.Combine(dir, newName);
+        //Log($"copy: {copyItem.ItemPath} to {newPath}");
+        Task<bool>? res = null;
+        //bool res = false;
+        try
+        {
+            //var cpi = copyItem;
+            //var old = copyItem.ItemName;
+            res = Task.Run(() => SendTo(copyItem, newPath, $"copy: {copyItem.ItemName} to {newPath}"));
+            if (res.Result)
+            {
+                ControlSuccess(copyItem, true);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log(ex.Message);
+            ControlSuccess(copyItem, false);
+            return false;
+        }
+        //var success = SendTo(copyItem, newPath, $"copy: {copyItem.ItemName} to {newPath}");
+        //copyItem.IsSelected = false;
+        ControlSuccess(copyItem, false);
+        //copyItem.IsSelected = true;
+
+        return false;
+    }
+
+    private bool Frequent(string action)
+    {
+        switch (action)
+        {
+            case "Add":
+                return AddFrequent();
+        }
+        return false;
+    }
+
+    private string GetNewName(string itemName, string newName, bool appendMode)
+    {
+        string name = Path.GetFileNameWithoutExtension(itemName);
+        string extension = Path.GetExtension(itemName);
+        if (appendMode)
+        {
+            name += newName + extension;
+            return name;
+        }
+        return newName + extension;
+    }
+
+    // Method overloaded tp accommodate first first call.
+    private TViewItem? GetTVIByHeader(TreeView tmpTV, string headerName)
+    {
+        foreach (var item in tmpTV.Items)
+        {
+            var tvi = (TViewItem)item;
+            if ((tvi.Header as string) == headerName)
+            {
+                return tvi;
+            }
+        }
+        return null;
+    }
+
+    private TViewItem? GetTVIByHeader(TViewItem tmpTVI, string headerName)
+    {
+        foreach (var item in tmpTVI.Items)
+        {
+            var tvi = (TViewItem)item;
+            if ((tvi.Header as string) == headerName)
+            {
+                return tvi;
+            }
+        }
+        return null;
+    }
+
+    public TViewItem HistoryBack()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos--;
+        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos <= (History.Count - 1)) ? true : false;
+        if (currentHistoryPos == -1)
+        {
+            currentHistoryPos = 0;
+        }
+        return History[currentHistoryPos];
+    }
+
+    public TViewItem HistoryForward()
+    {
+        HistoryNavigation = true;
+        currentHistoryPos++;
+        btnBack.IsEnabled = (currentHistoryPos > 0) ? true : false;
+        btnForward.IsEnabled = (currentHistoryPos < (History.Count - 1)) ? true : false;
+        return History[currentHistoryPos];
+    }
+
+    private void ItemSuccess(LViewItem selectedItem, bool success)
+    {
+        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        //ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
+        Dispatcher.Invoke(() => selectedItem.Background = new SolidColorBrush(fadeColor));
+        Dispatcher.Invoke(() =>
+        {
+            selectedItem.Background.BeginAnimation(SolidColorBrush.ColorProperty,
+            new ColorAnimation(Colors.Transparent,
+            new Duration(TimeSpan.FromSeconds(2))));
+        });
+    }
+
+    public bool ListDrives(TreeView tree)
+    {
+        try
+        {
+            var drives = Directory.GetLogicalDrives();
+            foreach (var drive in drives)
+            {
+                TViewItem tViewItem = new TViewItem(drive);
+                tViewItem.Foreground = Brushes.Ivory;
+                //tViewItem.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                tViewItem.DoubleClicked += TViewItem_DoubleClicked;
+                tree.Dispatcher.Invoke(() => tree.Items.Add(tViewItem));
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Error(ex.Message);
+            return false;
+        }
+    }
+
+    public void Log(string msg)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            tblLog.AppendText(msg);
+        }
+        else
+        {
+            Dispatcher.BeginInvoke(() => Log(msg));
+            //Dispatcher.BeginInvoke(() => Log($"no access - {msg}"));
+        }
+    }
+
+    public bool PerformAction(string actionOn, string action)
+    {
+
+        //Log($"PerformAction: {actionOn} - {action}");
+        //return true;
+        switch (actionOn)
+        {
+            case "Frequent":
+                return Frequent(action);
+            case "File Operations":
+                return FileOperation(action);
+        }
+        return false;
     }
 
     public (bool success, int count) PopulateListView(string dirPath, ListView listView)
@@ -167,76 +351,21 @@ public partial class MainWindow
         }
     }
 
-    public bool ListDrives(TreeView tree)
+    private void ScrollTviewItemsIntoView(TViewItem selectetItem)
     {
-        try
+        //selectetItem.Focus();
+        //return;
+        int itemCount = selectetItem?.Items?.Count ?? 0;
+        if (selectetItem is null || itemCount <= 0)
         {
-            var drives = Directory.GetLogicalDrives();
-            foreach (var drive in drives)
-            {
-                TViewItem tViewItem = new TViewItem(drive);
-                tViewItem.Foreground = Brushes.Ivory;
-                //tViewItem.MouseDoubleClick += TViewItem_MouseDoubleClick;
-                tViewItem.DoubleClicked += TViewItem_DoubleClicked;
-                tree.Dispatcher.Invoke(() => tree.Items.Add(tViewItem));
-            }
-            return true;
+            return;
         }
-        catch (Exception ex)
+        int targetItemIndex = 21;
+        if (itemCount < 22)
         {
-            Error(ex.Message);
-            return false;
+            targetItemIndex = selectetItem.Items.Count - 1;
         }
-    }
-
-    private void Error(string message)
-    {
-        MessageBox.Show(message);
-    }
-
-    private void BuildLVContextMenu()
-    {
-        try
-        {
-            var openWithPaths = File.ReadAllLines(openWithPath.Text);
-            foreach (var item in openWithPaths)
-            {
-                if (!string.IsNullOrWhiteSpace(item))
-                {
-                    MenuItemEx menuItem = CreateOpenWithMenuItem(item);
-                    openWith.Items.Add(menuItem);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log(ex.Message);
-        }
-
-        try
-        {
-            var sendToPaths = File.ReadAllLines(tbSendToPath.Text);
-            foreach (var item in sendToPaths)
-            {
-                if (!string.IsNullOrWhiteSpace(item))
-                {
-                    MenuItemEx menuItem = CreateSendToMenuItem(item);
-                    sendTo.Items.Add(menuItem);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log(ex.Message);
-        }
-    }
-
-    private MenuItemEx CreateSendToMenuItem(string itemPath)
-    {
-        var menuItem = new MenuItemEx(itemPath, true);
-        menuItem.Clicked += LVSendToMenuItem_Clicked;
-
-        return menuItem;
+        ((TViewItem)selectetItem.Items[targetItemIndex]).BringIntoView();
     }
 
     private (bool success, int count) SearchCurrentDirectory(string text)
@@ -245,18 +374,46 @@ public partial class MainWindow
         return (false, 0);
     }
 
-    private void DisableRedundantMenuItems()
+    private bool SendTo(LViewItem selectedItem, string newFilePath, string tmp, bool overwrite = false)
     {
-        if (SelectedLVItems?.Count < 1) { openWith.IsEnabled = false; return; } else openWith.IsEnabled = true;
-        if (!((LViewItem)lv.SelectedItem).ItemPath.EndsWith(".exe")) addThisApp.IsEnabled = false; else addThisApp.IsEnabled = true;
-    }
-
-    private MenuItemEx CreateOpenWithMenuItem(string exePath)
-    {
-        var menuItem = new MenuItemEx(exePath);
-        menuItem.Clicked += LVOpenWithMenuItem_Clicked;
-
-        return menuItem;
+        Log(tmp);
+        if (File.Exists(newFilePath))
+        {
+            Log("File Already exist");
+            try
+            {
+                if (!overwrite)
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.Message);
+                return false;
+            }
+        }
+        try
+        {
+            File.Copy(selectedItem.ItemPath, newFilePath, overwrite);
+            bool success = ConfirmCopy(newFilePath);
+            //Log(tmp);
+            if (success)
+            {
+                //Log("Success");
+                //ItemSuccess(selectedItem, true);
+                return true;
+            }
+            //Log("Failed");
+            //ItemSuccess(selectedItem, false);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            //Log($"Failed: {ex.Message}");
+            //ItemSuccess(selectedItem, false);
+            return false;
+        }
     }
 
     private void SetFooter(int count)
@@ -265,30 +422,80 @@ public partial class MainWindow
         footer.Text = $"{count} {collective} selected";
     }
 
-    private bool TreeViewSeekToItem(string path)
+    private void ToggleBreadCrumb(Visibility textVisible)
     {
-        HistoryNavigation = true;
-        var pathSplit = path.Split(System.IO.Path.DirectorySeparatorChar);
+        tbCurrentPath.Visibility = textVisible;
+        //crumbPanel.Visibility = Visibility.Visible;
+        Debug.WriteLine("ToggleBreadCrumb");
+        crumbPanel.Children.Clear();
+        foreach (CrumbItem cItem in crumbList)
+        {
+            var crumbBox = new ComboBox { IsEditable = true, IsReadOnly = true, Text = cItem.ItemName, Margin = new Thickness(10,0,0,0) };
+            crumbBox.SelectionChanged += CrumbBox_SelectionChanged;
+            crumbBox.MouseLeftButtonUp += CrumbBox_MouseLeftButtonUp;
+            crumbBox.Tag = cItem.ItemPath;
+            crumbBox.Style = (Style)FindResource("CrumbBox");
+            foreach(SubItem viewItem in cItem.ContainedItems)
+            {
+                crumbBox.Items.Add(viewItem);
+            }
+            
+            crumbPanel.Children.Add(crumbBox);
+        }
+        crumbSV.Visibility = (tbCurrentPath.Visibility == Visibility.Visible) ? Visibility.Hidden: Visibility.Visible;
+    }
+
+    private void CrumbBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        Log("CrumbBox_MouseLeftButtonUp");
+        var cmbo = (ComboBox)sender;
+        var newPath = (string)cmbo.Tag;
+        //var newPath = item.ItemPath;
+        TreeViewSeekToItem(newPath);
+        ToggleBreadCrumb(Visibility.Hidden);
+    }
+
+    private void CrumbBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        Log("CrumbBox_SelectionChanged");
+        var cmbo = (ComboBox)sender;
+        var item = (SubItem)cmbo.SelectedItem;
+        cmbo.Tag = item.ItemPath;
+        
+        var newPath = (string)cmbo.Tag;
+        TreeViewSeekToItem(newPath);
+        ToggleBreadCrumb(Visibility.Hidden);
+    }
+
+    private bool TreeViewSeekToItem(string path, bool isHistoryNavigation = true)
+    {
+        //Seeking = true;
+        HistoryNavigation = isHistoryNavigation;
+        var pathSplit = path.Split(Path.DirectorySeparatorChar);
         if (pathSplit is null)
         {
             return false;
         }
-        TViewItem? tmpTVI = GetTVIByHeader(tv, pathSplit[0]);
-        if (tmpTVI is null)
+        TViewItem? rootTVI = GetTVIByHeader(tv, pathSplit[0]);
+        if (rootTVI is null)
         {
             return false;
         }
-        UpdateTreeViewItem(tmpTVI);
-        tmpTVI.IsExpanded = true;
+        //UpdateTreeViewItem(rootTVI);
+        rootTVI.IsExpanded = true;
 
         // Here we have the first NPTreeViewItem in TreeView
+        // Clear list and add a CrumbItem
+        crumbList.Clear();
+        crumbList.Add(new CrumbItem(rootTVI));
         bool success = true;
         for (int i = 1; i < pathSplit.Length; i++)
         {
-            TViewItem? nPTreeViewItem = GetTVIByHeader(tmpTVI, pathSplit[i]);
-            if (nPTreeViewItem is null)
+            TViewItem? treeViewItem = GetTVIByHeader(rootTVI, pathSplit[i]);
+            if (treeViewItem is null)
             {
-                Log("Searching tree failed");
+                //Log("Searching tree failed");
                 success = false;
                 break;
             }
@@ -296,16 +503,18 @@ public partial class MainWindow
             // Here we have the next TViewItem in previous item,
             //  so update the TreeView, and expand.
             HistoryNavigation = true;
-            UpdateTreeViewItem(nPTreeViewItem);
+            //treeViewItem = UpdateTreeViewItem(treeViewItem);
             HistoryNavigation = true;
-            nPTreeViewItem.IsExpanded = true;
-            tmpTVI = nPTreeViewItem;
+            treeViewItem.IsExpanded = true;
+            // Add new crumb to list
+            crumbList.Add(new CrumbItem(treeViewItem));
+            rootTVI = treeViewItem;
         }
 
         // Perhaps GetTVIByHeader() failed
         if (success)
         {
-            TViewItem targetItem = tmpTVI;
+            TViewItem targetItem = rootTVI;
 
             // IsSelected will cause targetItem to be updated with UpdateTreeViewItem()
             //  via tv_SelectedItemChanged event
@@ -331,41 +540,19 @@ public partial class MainWindow
         return false;
     }
 
-    // Method overloaded tp accommodate first first call.
-    private TViewItem? GetTVIByHeader(TreeView tmpTV, string headerName)
+    private void UpdateCrumbs(string text)
     {
-        foreach (var item in tmpTV.Items)
-        {
-            var tvi = (TViewItem)item;
-            if ((tvi.Header as string) == headerName)
-            {
-                return tvi;
-            }
-        }
-        return null;
+        CommonMethods.Bingo("NotImplementedException", true);
     }
 
-    private TViewItem? GetTVIByHeader(TViewItem tmpTVI, string headerName)
-    {
-        foreach (var item in tmpTVI.Items)
-        {
-            var tvi = (TViewItem)item;
-            if ((tvi.Header as string) == headerName)
-            {
-                return tvi;
-            }
-        }
-        return null;
-    }
-
-    internal void UpdateTreeViewItem(TViewItem selectetItem)
+    internal TViewItem? UpdateTreeViewItem(TViewItem selectetItem)
     {
         string? path = selectetItem?.ItemPath;
         if (path != null)
         {
             try
             {
-                selectetItem.Items.Clear();
+                selectetItem?.Items.Clear();
                 List<string> dirList = Directory.EnumerateDirectories(path, "*", new EnumerationOptions { IgnoreInaccessible = true }).ToList();
                 foreach (var dir in dirList)
                 {
@@ -373,28 +560,75 @@ public partial class MainWindow
                     selectetItem?.Items.Add(item);
                 }
                 ScrollTviewItemsIntoView(selectetItem);
+                return selectetItem;
             }
             catch (Exception ex)
             {
+
+                if (ex.Message.StartsWith("This drive is locked by BitLocker"))
+                {
+                    Log(ex.Message);
+                    int startPos = ex.Message.IndexOf(":\\") - 1;
+                    int endPas = ex.Message.Length - startPos - 1;
+                    string driveLetter = ex.Message.Substring(startPos, endPas);
+                    Log(driveLetter);
+                    CommonMethods.OpenWith(@"C:\Windows\system32\bdeunlock.exe", driveLetter);
+                    //var bitlocker = new BitLocker("localhost");
+                    //var result = bitlocker.UnlockWithPassphrase("E:", "seagate1q2W3e4R5t");
+                    //tViewItem.Foreground = Brushes.Red;
+                    //tViewItem.ToolTip = "BitLocker";
+                    return (null);
+                }
+
                 Log(ex.Message);
+                return null;
             }
         }
+        return null;
     }
 
-    private void ScrollTviewItemsIntoView(TViewItem selectetItem)
+    
+
+    private (bool success, TViewItem? crumb) UpdateTViewItem(TViewItem tViewItem)
     {
-        //selectetItem.Focus();
-        //return;
-        int itemCount = selectetItem?.Items?.Count ?? 0;
-        if (selectetItem is null || itemCount <= 0)
+
+        tViewItem.Items.Clear();
+        try
         {
-            return;
+            var directories = Directory.EnumerateDirectories(tViewItem.ItemPath, "*", new EnumerationOptions { IgnoreInaccessible = true });
+            foreach (var dir in directories)
+            {
+                var tvi = new TViewItem(dir);
+                //tvi.MouseDoubleClick += TViewItem_MouseDoubleClick;
+                //tvi.DoubleClicked += TViewItem_DoubleClicked;
+                tViewItem.Items.Add(tvi);
+            }
+            return (true, tViewItem);
         }
-        int targetItemIndex = 21;
-        if (itemCount < 22)
+        catch (UnauthorizedAccessException)
         {
-            targetItemIndex = selectetItem.Items.Count -1;
+            tViewItem.ToolTip = new string("locked");
+            tViewItem.Foreground = Brushes.Red;
+            return (false, null);
         }
-        ((TViewItem)selectetItem.Items[targetItemIndex]).BringIntoView();
+        catch (Exception ex)
+        {
+            if (ex.Message.StartsWith("This drive is locked by BitLocker"))
+            {
+                Log(ex.Message);
+                int startPos = ex.Message.IndexOf(":\\") -1;
+                int endPas = ex.Message.Length - startPos -1;
+                string driveLetter = ex.Message.Substring(startPos, endPas);
+                Log(driveLetter);
+                CommonMethods.OpenWith(@"C:\Windows\system32\bdeunlock.exe", driveLetter);
+                //var bitlocker = new BitLocker("localhost");
+                //var result = bitlocker.UnlockWithPassphrase("E:", "seagate1q2W3e4R5t");
+                //tViewItem.Foreground = Brushes.Red;
+                //tViewItem.ToolTip = "BitLocker";
+                return (false, null);
+            }
+            Log(ex.Message);
+            return (false, null);
+        }
     }
 }

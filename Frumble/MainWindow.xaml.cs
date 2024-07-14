@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Management;
 
 
 namespace Frumble;
@@ -21,22 +23,27 @@ namespace Frumble;
 /// </summary>
 public partial class MainWindow : Window
 {
+    // dblclk used in ListView(lv) to distinguish from MouseUp
     bool dblclk = false;
+    // SelectedLVItems used for copy / paste
     IList? SelectedLVItems = null;
-    TViewItem Special;
-    #region Stack Control
-    List<TViewItem> History = new();
+    // Stored value of tbCurrentPath
+    string oldPath = "start";
+    List<CrumbItem> crumbList= new List<CrumbItem>();
 
+    TViewItem? TVFrequent;
+    #region History Control
+    /// <summary>
+    /// Everything here is used in navigating the history of visited folders
+    /// </summary>
+    List<TViewItem> History = new();
+    Logger logger = new Logger();
        
     int currentHistoryPos = 0;
 
     public bool HistoryNavigation { get; private set; } = false;
     public bool DoubleClickWasItem { get; private set; }
-
-    private void btnBack_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-
-    }
+    public bool Seeking { get; private set; }
 
     private void btnBack_MouseUp(object sender, MouseButtonEventArgs e)
     {
@@ -44,11 +51,8 @@ public partial class MainWindow : Window
         ((TViewItem)tv.Items[0]).IsExpanded = false;
         var tvi = HistoryBack();
         tbCurrentPath.Text = tvi.ItemPath;
-        TreeViewSeekToItem(tvi.ItemPath);
-    }
-
-    private void btnForward_MouseDown(object sender, MouseButtonEventArgs e)
-    {
+        //TreeViewSeekToItem(tvi.ItemPath);
+        
 
     }
 
@@ -58,7 +62,7 @@ public partial class MainWindow : Window
         ((TViewItem)tv.Items[0]).IsExpanded = false;
         var tvi = HistoryForward();
         tbCurrentPath.Text = tvi.ItemPath;
-        TreeViewSeekToItem(tvi.ItemPath);
+        //TreeViewSeekToItem(tvi.ItemPath);
     }
     #endregion
 
@@ -95,7 +99,7 @@ public partial class MainWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        
+        //titleBar.UseAeroCaptionButtons = true;
 
         Log("App Start");
         LoadFrequent(tv);
@@ -112,15 +116,15 @@ public partial class MainWindow : Window
     {
         try
         {
-            Special = new TViewItem(true, "Frequent");
-            tv.Items.Add(Special);
+            TVFrequent = new TViewItem(true, "Frequent");
+            tv.Items.Add(TVFrequent);
             var paths = File.ReadAllLines(tbFrequentPath.Text);
             foreach (var item in paths)
             {
                 if (!string.IsNullOrWhiteSpace(item))
                 {
                     TViewItem tViewItem = new TViewItem(item);
-                    Special.Items.Add(tViewItem);
+                    TVFrequent.Items.Add(tViewItem);
                 }
             }
         }
@@ -135,7 +139,7 @@ public partial class MainWindow : Window
         string selectedItemPath = ((LViewItem)lv.SelectedItem).ItemPath;
         string tmp = $"open \"{selectedItemPath}\" with \"{e}\"";
         CommonMethods.OpenWith(e, lv.SelectedItems);
-        Log(tmp);
+        //Log(tmp);
     }
 
     private void LVSendToMenuItem_Clicked(object? sender, string e)
@@ -150,48 +154,7 @@ public partial class MainWindow : Window
         Task.Run(()=> SendTo(selectedItem, newFilePath, tmp));
     }
 
-    private void SendTo(LViewItem selectedItem, string newFilePath, string tmp)
-    {
-        try
-        {
-            File.Copy(selectedItem.ItemPath, newFilePath);
-            bool success = ConfirmCopy(newFilePath);
-            Log(tmp);
-            if (success)
-            {
-                Log("Success");
-                ItemSuccess(selectedItem, true);
-                return;
-            }
-            Log("Failed");
-            ItemSuccess(selectedItem, false);
-        }
-        catch (Exception ex)
-        {
-            Log($"Failed: {ex.Message}");
-            ItemSuccess(selectedItem, false);
-        }
-    }
-
-    private void ItemSuccess(LViewItem selectedItem, bool success)
-    {
-        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
-        //ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
-        Dispatcher.Invoke(() => selectedItem.Background = new SolidColorBrush(fadeColor));
-        Dispatcher.Invoke(() =>
-        {
-            selectedItem.Background.BeginAnimation(SolidColorBrush.ColorProperty,
-            new ColorAnimation(Colors.Transparent,
-            new Duration(TimeSpan.FromSeconds(2))));
-         });  
-    }
-
-    private bool ConfirmCopy(string newFilePath)
-    {
-        return File.Exists(newFilePath);
-    }
-
-    private void TViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+   private void TViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
         if (e.ChangedButton == MouseButton.Left)
@@ -210,7 +173,7 @@ public partial class MainWindow : Window
         
         if (e.IsSelected)
         {
-            Log("TViewItem_DoubleClicked");
+            //Log("TViewItem_DoubleClicked");
             CommonMethods.OpenWithDefaultApp(e.ItemPath);
         }
     }
@@ -222,33 +185,8 @@ public partial class MainWindow : Window
             e.Handled = true;
             LViewItem lViewItem = (LViewItem)sender;
             CommonMethods.OpenWithDefaultApp(lViewItem.ItemPath);
-            Log($"Open file: {lViewItem.ItemPath}");
+            //Log($"Open file: {lViewItem.ItemPath}");
         }
-    }
-
-    private void tv_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-    {
-
-        e.Handled = true;
-        TViewItem tViewItem = (TViewItem)((TreeView)sender).SelectedItem;
-        //CollapseTreeviewItems(tViewItem);
-        if ((string)tViewItem.Header == "Frequent") { return; }
-        var upTV = UpdateTViewItem(tViewItem);
-        if (upTV.success)
-        {
-            if (!HistoryNavigation)
-            {
-                History.Add(tViewItem);
-                currentHistoryPos = History.Count -1;
-                btnForward.IsEnabled = false;
-            }
-            tbCurrentPath.Text = tViewItem.ItemPath;
-            btnBack.IsEnabled = true;
-            tViewItem.IsExpanded = true;
-            ScrollTviewItemsIntoView(tViewItem);
-            var popLV = PopulateListView(tViewItem.ItemPath, lv);
-        }
-        HistoryNavigation = false;
     }
 
     private void lvCM_Opened(object sender, RoutedEventArgs e)
@@ -296,8 +234,50 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            (bool success, int count) searchResults = SearchCurrentDirectory(tbSearch.Text);
+            (bool succss, int count) searchResults = SearchCurrentDirectory(tbSearch.Text);
         }
+    }
+
+    private TViewItem? SearchTreeView(string text)
+    {
+        
+        var pathSplit = text.Split(Path.DirectorySeparatorChar);
+        if ((pathSplit is not null) && pathSplit.Length > 0)
+        {
+            var Items = tv.Items;
+            //Log($"pathSplit: {pathSplit.Length} items: Item 0: {pathSplit[0]}");
+            foreach (var pathPart in pathSplit)
+            {
+                //Log($"Searching for {pathPart}");
+                // Get a reference to each dir in path
+                TViewItem? tViewItem = GetTViewItemByItemName(Items, pathPart);
+                if (tViewItem is not null)
+                {
+                    //Log($"Found {tViewItem.ItemPath}");
+                    //UpdateTViewItem(tViewItem);
+                    tViewItem.IsSelected = true;
+                    //tViewItem.IsExpanded = true;
+                    Items = tViewItem.Items;
+                }
+            }
+            
+        }
+        return null;
+    }
+
+    private TViewItem? GetTViewItemByItemName(ItemCollection items, string pathPart)
+    {
+        foreach (var item in items)
+        {
+            var tmpItem = (TViewItem)item;
+            //Log(tmpItem.ItemName);
+            if (tmpItem.ItemName == pathPart)
+            {
+                //Log($"returning: {tmpItem.ItemPath}");
+                return tmpItem;
+            }
+        }
+        return null;
     }
 
     private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -307,8 +287,13 @@ public partial class MainWindow : Window
         WrapPanel wrapPanel = (WrapPanel)labelButton.Parent;//
         GroupBox groupBox = (GroupBox)wrapPanel.Parent;//.GetType().ToString();
         string gbTitle = groupBox.Header.ToString();
-        bool succeaa = PerformAction(gbTitle, labelButton.Content.ToString());
-        LabelSuccess(labelButton, succeaa);
+        bool success = PerformAction(gbTitle, labelButton.Content.ToString());
+        if (success)
+        {
+            Log("success leave it at that");
+            return;
+        }
+        Log("failed leave it at that");
     }
 
     private void Label_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -405,4 +390,91 @@ public partial class MainWindow : Window
     {
         return (LViewItem)sender;
     }
+
+    private void WindowChrome_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show(e.OriginalSource.ToString());
+    }
+
+    private void tbCurrentPath_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            SearchTreeView(tbCurrentPath.Text); 
+        }
+    }
+
+    private void tbCurrentPath_LostFocus(object sender, RoutedEventArgs e)
+    {//part of determining if clicked out of tbCurrentPath
+
+        ToggleBreadCrumb(Visibility.Visible);
+    }
+
+    private void Grid_MouseUp(object sender, MouseButtonEventArgs e)
+    {//part of determining if clicked out of tbCurrentPath
+
+        //take focus away from focused control
+        mainGrid.Focus();
+    }
+
+    private void tv_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        e.Handled = true;
+        if(Seeking)
+        {
+            Seeking = false;
+            return;
+        }
+        TViewItem tViewItem = (TViewItem)((TreeView)sender).SelectedItem;
+        //CollapseTreeviewItems(tViewItem);
+        if ((string)tViewItem.Header == "Frequent")
+        {
+            //DealwithFrequentClick(tViewItem);
+            return;
+        }
+        var upTV = UpdateTViewItem(tViewItem);
+        if (upTV.success)
+        {
+            if (!HistoryNavigation)
+            {
+                History.Add(tViewItem);
+                currentHistoryPos = History.Count - 1;
+                btnForward.IsEnabled = false;
+            }
+            tbCurrentPath.Text = tViewItem.ItemPath;
+            btnBack.IsEnabled = true;
+            tViewItem.IsExpanded = true;
+            //TreeViewSeekToItem(tbCurrentPath.Text);
+            ScrollTviewItemsIntoView(tViewItem);
+            //ToggleBreadCrumb(Visibility.Hidden);
+            var popLV = PopulateListView(tViewItem.ItemPath, lv);
+        }
+        HistoryNavigation = false;
+    }
+
+    private void tbCurrentPath_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if(tbCurrentPath.Text != oldPath)
+        {
+            Debug.WriteLine(oldPath);
+            Debug.WriteLine(tbCurrentPath.Text);
+            Debug.WriteLine("##########");
+            oldPath = tbCurrentPath.Text;
+            TreeViewSeekToItem(tbCurrentPath.Text);
+            ToggleBreadCrumb(Visibility.Hidden);
+        }
+        // TODO Update crumbs
+        //UpdateCrumbs(tbCurrentPath.Text);
+    }
+
+    private void crumbSV_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        //return;
+        Log("crumbSV_MouseLeftButtonUp");
+        ToggleBreadCrumb(Visibility.Visible);
+    }
 }
+
+
+
+

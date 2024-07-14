@@ -12,6 +12,14 @@ using System.Windows.Controls;
 namespace Frumble;
 public static class CommonMethods
 {
+    public static void Bingo(string text, bool passive = false)
+    {
+        if (!passive)
+        {
+            MessageBox.Show(text); 
+        }
+        Debug.WriteLine(text);
+    }
     public static void OpenWithDefaultApp(string fullPath)
     {
         try
@@ -74,6 +82,26 @@ public static class CommonMethods
         return (newDir, newPath);
     }
 
+    public static void OpenWith(string exe, string arg)
+    {
+        //string targetPaths = string.Empty;
+
+        try
+        {
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo(exe)
+                {
+                    Arguments = arg
+                }
+            };
+            p.Start();
+        }
+        catch (Exception ex)
+        {
+            Error(ex.Message);
+        }
+    }
 
     public static void OpenWith(string exe, IList selectedItems)
     {
