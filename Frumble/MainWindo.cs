@@ -1,21 +1,24 @@
 ﻿using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Frumble;
 public partial class MainWindow
 {
-
     private bool AddFrequent()
     {
         try
@@ -101,6 +104,25 @@ public partial class MainWindow
         //lvi.IsSelected = true;
     }
 
+    private void DeleteSuccess(LViewItem control, bool success = true)
+    {
+        //LViewItem lvi = (LViewItem)control;
+        control.IsSelected = false;
+        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
+        ca.Completed += Ca_Completed;
+        control.Background = new SolidColorBrush(fadeColor);
+        control.Background.BeginAnimation(SolidColorBrush.ColorProperty, ca);
+        //lvi.IsSelected = true;
+    }
+
+    private void Ca_Completed(object? sender, EventArgs e)
+    {
+        //TODO fix error after switching to itemsource
+        lv.Items.Remove(lv.SelectedItem);
+        PopulateListView(tbCurrentPath.Text, lv);
+    }
+
     private MenuItemEx CreateSendToMenuItem(string itemPath)
     {
         var menuItem = new MenuItemEx(itemPath, true);
@@ -132,16 +154,22 @@ public partial class MainWindow
         switch (action)
         {
             case "Copy":
+                FilesAddToCopyList(lv.SelectedItems);
+                //foreach (var item in lv.SelectedItems)
+                //{
+                //    var lvItem = (LViewItem)item;
+                //    CopyList.Add(lvItem);
+                //}
+                return CopyList.Count > 0;
                 return FileOperationCopy().Result;
             //return true;
             case "Delete":
                 return FileOperationDelete();
+            case "Paste":
+                FilesCopy(CopyList, @"X:\Fake");
+                //CopyList.Clear();
+                return CopyList.Count < 1;
         }
-        return false;
-    }
-
-    private bool FileOperationDelete()
-    {
         return false;
     }
 
@@ -165,10 +193,11 @@ public partial class MainWindow
         {
             //var cpi = copyItem;
             //var old = copyItem.ItemName;
-            res = Task.Run(() => SendTo(copyItem, newPath, $"copy: {copyItem.ItemName} to {newPath}"));
+            res = Task.Run(() => SendTo(copyItem, newPath, $"Copy: {copyItem.ItemName} to {newPath}"));
             if (res.Result)
             {
                 ControlSuccess(copyItem, true);
+                PopulateListView(dir, lv);
                 return true;
             }
         }
@@ -184,6 +213,28 @@ public partial class MainWindow
         //copyItem.IsSelected = true;
 
         return false;
+    }
+
+    private bool FileOperationDelete()
+    {
+        var deleteItem = (LViewItem)lv.SelectedItem;
+        Log($"Delete: {deleteItem.ItemPath}");
+        try
+        {
+            FileSystem.DeleteFile(deleteItem.ItemPath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            var success = !File.Exists(deleteItem.ItemPath);
+            if (success)
+            {
+                DeleteSuccess(deleteItem, false);
+            }
+            return success;
+        }
+        catch (Exception ex)
+        {
+            Log($"Error: {ex.Message}");
+            DeleteSuccess(deleteItem, false);
+            return false;
+        }
     }
 
     private bool Frequent(string action)
@@ -316,6 +367,7 @@ public partial class MainWindow
                 return Frequent(action);
             case "File Operations":
                 return FileOperation(action);
+
         }
         return false;
     }
@@ -324,21 +376,26 @@ public partial class MainWindow
     {
         try
         {
-            listView.Items.Clear();
-            var files = Directory.EnumerateFiles(dirPath, "*.*", new EnumerationOptions { IgnoreInaccessible = true });
+            //ObservableCollection<LViewItem> observableFiles = new ObservableCollection<LViewItem>();
+            //listView.Items.Clear();
+            ObservableLVItens.Clear();
+            var files = Directory.EnumerateFiles(dirPath, "*.*", new EnumerationOptions { IgnoreInaccessible = true }).ToList();
             foreach (var file in files)
             {
                 var lViewItem = new LViewItem(file);
                 //lViewItem.MouseDoubleClick += LViewItem_MouseDoubleClick;
                 lViewItem.PreviewMouseLeftButtonDown += LViewItem_PreviewMouseLeftButtonDown;
                 lViewItem.MouseEnter += LViewItem_MouseEnter;
-                //lViewItem.MouseLeftButtonDown += LViewItem_MouseLeftButtonDown;
-                listView.Items.Add(lViewItem);
+                lViewItem.MouseLeftButtonUp += LViewItem_MouseLeftButtonUp;
+                //listView.Items.Add(lViewItem);
+                ObservableLVItens.Add(lViewItem);
             }
-            return (true, files.Count());
+            //lv.UpdateLayout();
+            return (true, ObservableLVItens.Count);
         }
         catch (Exception ex)
         {
+            Log(ex.Message);
             if (ex.Message.StartsWith("This drive is locked by BitLocker"))
             {
                 var selectedTVItem = (TViewItem)tv.SelectedItem;
@@ -350,6 +407,44 @@ public partial class MainWindow
             return (false, 0);
         }
     }
+
+    private void LViewItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        Log("LViewItem_MouseLeftButtonUp");
+        e.Handled = true;
+    }
+
+
+    //public (bool success, int count) PopulateListView(string dirPath, ListView listView)
+    //{
+    //    try
+    //    {
+    //        listView.Items.Clear();
+    //        var files = Directory.EnumerateFiles(dirPath, "*.*", new EnumerationOptions { IgnoreInaccessible = true });
+    //        foreach (var file in files)
+    //        {
+    //            var lViewItem = new LViewItem(file);
+    //            //lViewItem.MouseDoubleClick += LViewItem_MouseDoubleClick;
+    //            lViewItem.PreviewMouseLeftButtonDown += LViewItem_PreviewMouseLeftButtonDown;
+    //            lViewItem.MouseEnter += LViewItem_MouseEnter;
+    //            //lViewItem.MouseLeftButtonDown += LViewItem_MouseLeftButtonDown;
+    //            listView.Items.Add(lViewItem);
+    //        }
+    //        return (true, files.Count());
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        if (ex.Message.StartsWith("This drive is locked by BitLocker"))
+    //        {
+    //            var selectedTVItem = (TViewItem)tv.SelectedItem;
+    //            selectedTVItem.Foreground = Brushes.Red;
+    //            selectedTVItem.IsEnabled = false;
+    //            return (false, 0);
+    //        }
+    //        Error(ex.Message);
+    //        return (false, 0);
+    //    }
+    //}
 
     private void ScrollTviewItemsIntoView(TViewItem selectetItem)
     {
@@ -443,12 +538,13 @@ public partial class MainWindow
             crumbPanel.Children.Add(crumbBox);
         }
         crumbSV.Visibility = (tbCurrentPath.Visibility == Visibility.Visible) ? Visibility.Hidden: Visibility.Visible;
+        crumbSV.ScrollToRightEnd();
     }
 
     private void CrumbBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         e.Handled = true;
-        Log("CrumbBox_MouseLeftButtonUp");
+        //Log("CrumbBox_MouseLeftButtonUp");
         var cmbo = (ComboBox)sender;
         var newPath = (string)cmbo.Tag;
         //var newPath = item.ItemPath;
@@ -458,7 +554,7 @@ public partial class MainWindow
 
     private void CrumbBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        Log("CrumbBox_SelectionChanged");
+        //Log("CrumbBox_SelectionChanged");
         var cmbo = (ComboBox)sender;
         var item = (SubItem)cmbo.SelectedItem;
         cmbo.Tag = item.ItemPath;
@@ -587,8 +683,6 @@ public partial class MainWindow
         return null;
     }
 
-    
-
     private (bool success, TViewItem? crumb) UpdateTViewItem(TViewItem tViewItem)
     {
 
@@ -619,12 +713,8 @@ public partial class MainWindow
                 int startPos = ex.Message.IndexOf(":\\") -1;
                 int endPas = ex.Message.Length - startPos -1;
                 string driveLetter = ex.Message.Substring(startPos, endPas);
-                Log(driveLetter);
+                //Log(driveLetter);
                 CommonMethods.OpenWith(@"C:\Windows\system32\bdeunlock.exe", driveLetter);
-                //var bitlocker = new BitLocker("localhost");
-                //var result = bitlocker.UnlockWithPassphrase("E:", "seagate1q2W3e4R5t");
-                //tViewItem.Foreground = Brushes.Red;
-                //tViewItem.ToolTip = "BitLocker";
                 return (false, null);
             }
             Log(ex.Message);

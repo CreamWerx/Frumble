@@ -15,6 +15,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Management;
+using System.Collections.ObjectModel;
 
 
 namespace Frumble;
@@ -23,6 +24,18 @@ namespace Frumble;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private ObservableCollection<LViewItem> observableLVItens;
+
+    public ObservableCollection<LViewItem> ObservableLVItens
+    {
+        get { return observableLVItens; }
+        set { observableLVItens = value; }
+    }
+
+    TextBox? cmboCut = null;
+    TextBox? cmboCopy = null;
+    bool DropdownCutIsOpen = false;
+    bool DropdownCopyIsOpen = false;
     // dblclk used in ListView(lv) to distinguish from MouseUp
     bool dblclk = false;
     // SelectedLVItems used for copy / paste
@@ -68,7 +81,10 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        DataContext = this;
+        ObservableLVItens = new ObservableCollection<LViewItem>();
         InitializeComponent();
+        lv.ItemsSource = ObservableLVItens;
     }
 
     private void LViewItem_MouseEnter(object sender, MouseEventArgs e)
@@ -100,6 +116,10 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         //titleBar.UseAeroCaptionButtons = true;
+        cmboCut = (cmboCutPaste.Template.FindName("PART_EditableTextBox", cmboCutPaste) as TextBox);
+        cmboCut?.AddHandler(PreviewMouseLeftButtonDownEvent, new RoutedEventHandler(CmboCut_Click), true);
+        cmboCopy = (cmboCopyPaste.Template.FindName("PART_EditableTextBox", cmboCopyPaste) as TextBox);
+        cmboCopy?.AddHandler(PreviewMouseLeftButtonDownEvent, new RoutedEventHandler(CmboCopy_Click), true);
 
         Log("App Start");
         LoadFrequent(tv);
@@ -110,6 +130,126 @@ public partial class MainWindow : Window
         Log("File list view context menu built");
         btnBack.Content = "<";
         btnForward.Content = ">";
+        
+    }
+
+    private void CmboCopy_Click(object sender, RoutedEventArgs e)
+    {
+        if (!DropdownCopyIsOpen)
+        { 
+            Copy(); 
+        }
+        else 
+        { 
+            CopyPaste(); 
+        }
+        e.Handled = true;
+    }
+
+    private string CopyPaste()
+    {
+        int count = 0;
+        foreach (var item in cmboCopyPaste.Items)
+        {
+            var cbItem = (CBItem)item;
+            if (cbItem.IsItemChecked)
+            {
+                count++;
+            }
+        }
+        return $"Copy paste {count} items?";
+    }
+
+    private string Copy()
+    {
+        if (CopyList.Count == 0)
+        {
+            var cbItem = new CBItem("Select All");
+            cbItem.SelectAllChecked += CbItem_SelectAllChecked;
+            cbItem.SelectAllUnChecked += CbItem_SelectAllUnChecked;
+            cmboCopyPaste.Items.Add(cbItem as CheckBox);
+        }
+        FilesAddToCopyList(lv.SelectedItems);
+        foreach (var item in CopyList)
+        {
+            var cbItem = new CBItem(item);
+            cmboCopyPaste.Items.Add(cbItem as CheckBox);
+        }
+        //var count = cmboCutPaste.Items.Count;
+        return lv.SelectedItems.Count.ToString();
+    }
+
+    private void CbItem_SelectAllUnChecked(object sender, EventArgs e)
+    {
+        var cmb = (ComboBox)((CBItem)sender).Parent;
+        foreach (var item in cmb.Items)
+        {
+            var cbi = (CBItem)item;
+            cbi.IsChecked = false;
+            cbi.IsItemChecked = false;
+        }
+    }
+
+    private void CbItem_SelectAllChecked(object sender, EventArgs e)
+    {
+        var cmb = (ComboBox)((CBItem)sender).Parent;
+
+        foreach (var item in cmb.Items)
+        {
+            var cbi = (CBItem)item;
+            cbi.IsChecked = true;
+            cbi.IsItemChecked = true;
+        }
+    }
+
+    private void CmboCut_Click(object sender, RoutedEventArgs e)
+    {
+        if (!DropdownCutIsOpen)
+        {
+            Cut();
+        }
+        else
+        {
+            CutPaste();
+        }
+        e.Handled = true;
+    }
+
+    private string CutPaste()
+    {
+        int count = 0;
+        foreach (var item in cmboCutPaste.Items)
+        {
+            var cbItem = (CBItem)item;
+            if (cbItem.IsItemChecked)
+            {
+                count++;
+            }
+        }
+        return $"Cut paste {count} items?";
+    }
+
+    private string Cut()
+    {
+        if (lv.SelectedItems is null)
+        {
+            return "null";
+        }
+        if (CutList.Count == 0)
+        {
+            var cbItem = new CBItem("Select All");
+            cbItem.SelectAllChecked += CbItem_SelectAllChecked;
+            cbItem.SelectAllUnChecked += CbItem_SelectAllUnChecked;
+            cmboCutPaste.Items.Add(cbItem as CheckBox);
+        }
+        FilesAddToCutList(lv.SelectedItems);
+        foreach (var item in CutList)
+        {
+            var cbItem = new CBItem(item);
+            cmboCutPaste.Items.Add(cbItem as CheckBox);
+        }
+        //var count = cmboCutPaste.Items.Count;
+        return lv.SelectedItems.Count.ToString();
     }
 
     private void LoadFrequent(TreeView tv)
@@ -180,12 +320,13 @@ public partial class MainWindow : Window
 
     private void LViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        //Log("LViewItem_PreviewMouseLeftButtonDown");
         if (e.ClickCount == 2)
         {
             e.Handled = true;
             LViewItem lViewItem = (LViewItem)sender;
             CommonMethods.OpenWithDefaultApp(lViewItem.ItemPath);
-            //Log($"Open file: {lViewItem.ItemPath}");
+            Log($"Open file: {lViewItem.ItemPath}");
         }
     }
 
@@ -281,19 +422,21 @@ public partial class MainWindow : Window
     }
 
     private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-    {
+    {// TODO Implement CopyEx PasteEx (select whuch files to paste)
         Label labelButton = (Label)sender;
         labelButton.Foreground = Brushes.LightGray;
         WrapPanel wrapPanel = (WrapPanel)labelButton.Parent;//
         GroupBox groupBox = (GroupBox)wrapPanel.Parent;//.GetType().ToString();
-        string gbTitle = groupBox.Header.ToString();
-        bool success = PerformAction(gbTitle, labelButton.Content.ToString());
+        string gbTitle = groupBox.Header.ToString() ?? "null";
+        bool success = PerformAction(gbTitle, labelButton.Content.ToString() ?? "null");
         if (success)
         {
-            Log("success leave it at that");
+            Log("success");
+            //lv.Items.Remove(lv.SelectedItem);
+            //PopulateListView(tbCurrentPath.Text, lv);
             return;
         }
-        Log("failed leave it at that");
+        Log("failed");
     }
 
     private void Label_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -304,6 +447,15 @@ public partial class MainWindow : Window
     private void Label_MouseEnter(object sender, MouseEventArgs e)
     {
         var label = (Label)sender;
+        var labelText = (string)label.Content;
+        if (labelText == "Copy" && CopyList.Count > 0)
+        {
+            label.ToolTip = $"{CopyList.Count} items";
+        }
+        else
+        {
+            label.ToolTip = null;
+        }
         label.FontWeight = FontWeights.Bold;
         label.Foreground = Brushes.White;
     }
@@ -330,7 +482,7 @@ public partial class MainWindow : Window
             dblclk = false;
             return;
         }
-        if (e.Source is ListView)
+        if (e.Source is not LViewItem)
         {
             lv.UnselectAll();
         }
@@ -339,10 +491,12 @@ public partial class MainWindow : Window
 
     private void lv_KeyUp(object sender, KeyEventArgs e)
     {
+        Log("lv_KeyUp");
         if (Keyboard.IsKeyDown(Key.LeftCtrl))
         {
             if (e.Key == Key.A)
             {
+                lv.SelectAll();
                 SetFooter(lv.Items.Count);
             }
             else if (e.Key == Key.C)
@@ -350,7 +504,7 @@ public partial class MainWindow : Window
                 var selectedItems = lv.SelectedItems;
                 if (selectedItems.Count > 0)
                 {
-                    foPasteOp.Background = Brushes.DarkOrange; 
+                    //TODO copy via keys
                 }
             }
         }
@@ -469,9 +623,31 @@ public partial class MainWindow : Window
 
     private void crumbSV_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        //return;
-        Log("crumbSV_MouseLeftButtonUp");
         ToggleBreadCrumb(Visibility.Visible);
+    }
+
+    private void cmboCutPaste_DropDownOpened(object sender, EventArgs e)
+    {
+        DropdownCutIsOpen = true;
+        cmboCutPaste.Text = "Paste";
+    }
+
+    private void cmboCutPaste_DropDownClosed(object sender, EventArgs e)
+    {
+        DropdownCutIsOpen = false;
+        cmboCutPaste.Text = "Cut";
+    }
+
+    private void cmboCopyPaste_DropDownClosed(object sender, EventArgs e)
+    {
+        DropdownCopyIsOpen = false;
+        cmboCopyPaste.Text = "Copy";
+    }
+
+    private void cmboCopyPaste_DropDownOpened(object sender, EventArgs e)
+    {
+        DropdownCopyIsOpen = true;
+        cmboCopyPaste.Text = "Paste";
     }
 }
 

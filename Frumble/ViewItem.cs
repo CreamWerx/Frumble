@@ -41,6 +41,7 @@ public class TViewItem : TreeViewItem
         Background = Brushes.Transparent;
         Foreground = Brushes.Gold;
         ToolTip = ItemPath;
+        HorizontalAlignment = HorizontalAlignment.Stretch;
         Style = (Style)Application.Current.MainWindow.FindResource("PrimaryTVI");
     }
 

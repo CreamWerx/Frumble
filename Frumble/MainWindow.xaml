@@ -4,12 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="MainWindow"
+    Title="Frumble"
     Width="800"
     Height="450"
     Background="Black"
     Closing="Window_Closing"
-    Focusable="True"
     Foreground="Ivory"
     Loaded="Window_Loaded"
     WindowState="Maximized"
@@ -21,19 +20,16 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Dictionary1.xaml" />
-                <ResourceDictionary Source="Dictionary2.xaml" />
+                <ResourceDictionary Source="Dictionary_ListViewItem.xaml" />
+                <ResourceDictionary Source="Dictionary_Tree.xaml" />
                 <ResourceDictionary Source="DictionaryTab.xaml" />
-                <ResourceDictionary Source="DictionaryLabel.xaml" />
-                <ResourceDictionary Source="DictionaryScrollBar.xaml" />
+                <ResourceDictionary Source="DictCombo.xaml" />
+                <ResourceDictionary Source="Dictionary_ScrollBar.xaml" />
                 <ResourceDictionary Source="DictionaryComboBox.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid
-        x:Name="mainGrid"
-        Focusable="True"
-        MouseUp="Grid_MouseUp">
+    <Grid x:Name="mainGrid" MouseUp="Grid_MouseUp">
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
             <RowDefinition />
@@ -41,7 +37,7 @@
         <TextBlock
             Grid.Row="0"
             HorizontalAlignment="Center"
-            Text="Title" />
+            Text="Frumble" />
         <StackPanel
             Grid.Row="0"
             HorizontalAlignment="Right"
@@ -192,31 +188,36 @@
                                 FontSize="16"
                                 Header="File Operations">
                                 <WrapPanel Orientation="Vertical">
-                                    <Label
+                                    <!--<Label
                                         Content="Cut"
                                         FontSize="14"
                                         Foreground="LightGray"
                                         MouseEnter="Label_MouseEnter"
                                         MouseLeave="Label_MouseLeave"
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
-                                    <Label
-                                        Content="Copy"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
-                                    <Label
-                                        x:Name="foPasteOp"
-                                        Content="Paste"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />-->
+                                    <ComboBox
+                                        x:Name="cmboCutPaste"
+                                        VerticalAlignment="Center"
+                                        Background="Black"
+                                        DropDownClosed="cmboCutPaste_DropDownClosed"
+                                        DropDownOpened="cmboCutPaste_DropDownOpened"
+                                        Foreground="White"
+                                        IsEditable="True"
+                                        IsReadOnly="True"
+                                        Style="{StaticResource ComboBlack}"
+                                        Text="Cut" />
+                                    <ComboBox
+                                        x:Name="cmboCopyPaste"
+                                        VerticalAlignment="Center"
+                                        Background="Black"
+                                        DropDownClosed="cmboCopyPaste_DropDownClosed"
+                                        DropDownOpened="cmboCopyPaste_DropDownOpened"
+                                        Foreground="White"
+                                        IsEditable="True"
+                                        IsReadOnly="True"
+                                        Style="{StaticResource ComboBlack}"
+                                        Text="Copy" />
                                     <Label
                                         Content="Delete"
                                         FontSize="14"
@@ -235,7 +236,7 @@
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
-                            <!--<TextBox x:Name="tmpTB" Height="80" MinWidth="200"/>-->
+
                         </StackPanel>
                         <Grid Grid.Row="0" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
@@ -274,25 +275,31 @@
                                     <ColumnDefinition Width="90*" />
                                     <ColumnDefinition Width="10*" />
                                 </Grid.ColumnDefinitions>
-                                <!--<ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">-->
-                                    <TextBox
-                                        x:Name="tbCurrentPath"
-                                        Grid.Column="0"
-                                        Padding="10,0,0,0"
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
-                                        Background="#FF040813"
-                                        KeyUp="tbCurrentPath_KeyUp"
-                                        LostFocus="tbCurrentPath_LostFocus"
-                                        Text=""
-                                        TextChanged="tbCurrentPath_TextChanged"
-                                        TextBlock.Foreground="Ivory" />
+                                <!--<ScrollViewer
+                                    Name="crumbScroll"
+                                    HorizontalScrollBarVisibility="Hidden"
+                                    VerticalScrollBarVisibility="Hidden">-->
+                                <TextBox
+                                    x:Name="tbCurrentPath"
+                                    Grid.Column="0"
+                                    Padding="10,0,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    Background="#FF040813"
+                                    KeyUp="tbCurrentPath_KeyUp"
+                                    LostFocus="tbCurrentPath_LostFocus"
+                                    Text=""
+                                    TextBlock.Foreground="Ivory"
+                                    TextChanged="tbCurrentPath_TextChanged" />
                                 <!--</ScrollViewer>-->
                                 <ScrollViewer
                                     x:Name="crumbSV"
                                     Grid.Column="0"
-                                    Visibility="Hidden"
-                                    MouseLeftButtonUp="crumbSV_MouseLeftButtonUp">
+                                    FlowDirection="LeftToRight"
+                                    HorizontalScrollBarVisibility="Hidden"
+                                    MouseLeftButtonUp="crumbSV_MouseLeftButtonUp"
+                                    VerticalScrollBarVisibility="Disabled"
+                                    Visibility="Hidden">
                                     <StackPanel
                                         x:Name="crumbPanel"
                                         HorizontalAlignment="Stretch"
@@ -336,6 +343,7 @@
                                 Grid.Column="1"
                                 Width="3"
                                 HorizontalAlignment="Stretch" />
+                            <!--  ItemsSource="{Binding ObservableLVItems, Mode=TwoWay}"  -->
 
                             <ListView
                                 x:Name="lv"
@@ -343,9 +351,11 @@
                                 Background="Black"
                                 Focusable="True"
                                 Foreground="Ivory"
+                                ItemsSource="{Binding ObservableLVItems}"
                                 KeyUp="lv_KeyUp"
                                 MouseDoubleClick="lv_MouseDoubleClick"
-                                MouseLeftButtonUp="lv_MouseLeftButtonUp">
+                                MouseLeftButtonUp="lv_MouseLeftButtonUp"
+                                SelectionMode="Extended">
                                 <ListView.ContextMenu>
                                     <ContextMenu
                                         Name="lvCM"
@@ -457,6 +467,28 @@
                                 Margin="20"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="10"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Text="Copy/Cut Paste behavior" />
+                            <RadioButton
+                                x:Name="radioPasteSelected"
+                                Margin="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="Paste selected"
+                                Foreground="Ivory"
+                                IsChecked="True" />
+                            <RadioButton
+                                x:Name="radioPasteAll"
+                                Margin="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="Paste all"
+                                Foreground="Ivory" />
                         </StackPanel>
                     </Grid>
                 </TabItem>

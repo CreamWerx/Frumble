@@ -21,7 +21,7 @@
         Color="Blue" />
     <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da" />
     <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="Blue" Opacity="0.5"/>
-    <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="LightBlue" />
+    <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="Blue" Opacity="0.5" />
     <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA" />
     <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA" />
     <Style x:Key="PrimaryLVI" TargetType="{x:Type ListViewItem}">
@@ -35,7 +35,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                <ControlTemplate TargetType="{x:Type ListViewItem}">
                     <Border
                         x:Name="Bd"
                         Padding="{TemplateBinding Padding}"
@@ -72,9 +72,9 @@
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource Item.SelectedActive.Background}" />
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Item.SelectedActive.Border}" />
                         </MultiTrigger>
-                        <Trigger Property="IsEnabled" Value="False">
+                        <!--<Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
-                        </Trigger>
+                        </Trigger>-->
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
