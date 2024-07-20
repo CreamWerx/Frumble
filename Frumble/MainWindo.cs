@@ -93,11 +93,19 @@ public partial class MainWindow
         return File.Exists(newFilePath);
     }
 
-    private void ControlSuccess(LViewItem control, bool success = true)
+    private void ControlSuccess(LViewItem control, bool? success = null)
     {
         //LViewItem lvi = (LViewItem)control;
         control.IsSelected = false;
-        Color fadeColor = success ? Colors.LightGreen : Colors.Red;
+        Color fadeColor = Colors.Orange; 
+        if(success == true)
+        {
+            fadeColor = Colors.LightGreen;
+        }
+        else if(success == false)
+        {
+            fadeColor = Colors.Red;
+        }
         ColorAnimation ca = new ColorAnimation(Colors.Transparent, new Duration(TimeSpan.FromSeconds(1)));
         control.Background = new SolidColorBrush(fadeColor);
         control.Background.BeginAnimation(SolidColorBrush.ColorProperty, ca);
@@ -119,7 +127,7 @@ public partial class MainWindow
     private void Ca_Completed(object? sender, EventArgs e)
     {
         //TODO fix error after switching to itemsource
-        lv.Items.Remove(lv.SelectedItem);
+        //lv.Items.Remove(lv.SelectedItem);
         PopulateListView(tbCurrentPath.Text, lv);
     }
 
@@ -343,10 +351,18 @@ public partial class MainWindow
         }
     }
 
-    public void Log(string msg)
+    public void Log(string msg, bool isError = false)
     {
         if (Dispatcher.CheckAccess())
         {
+            if (isError)
+            {
+                msg = $"Error: {msg}";
+            }
+            else
+            {
+                msg = $"Info: {msg}";
+            }
             tblLog.AppendText(msg);
         }
         else

@@ -132,7 +132,8 @@
         </Setter>
     </Style>
 
-    <!--  RepeatButton Style for ScrollBar  --><!--
+    <!--  RepeatButton Style for ScrollBar  -->
+    <!--
     <Style x:Key="ScrollBarRepeatButton" TargetType="RepeatButton">
         <Setter Property="OverridesDefaultStyle" Value="true" />
         <Setter Property="Background" Value="{StaticResource Combo.Scroll.Elements}" />
@@ -151,11 +152,15 @@
         </Setter>
     </Style>
 
-    --><!--  Thumb Style for ScrollBar  --><!--
+    -->
+    <!--  Thumb Style for ScrollBar  -->
+    <!--
     <Style x:Key="ScrollBarThumb" TargetType="Thumb">
         <Setter Property="Background" Value="{StaticResource Combo.Scroll.Elements}" />
         <Setter Property="Width" Value="{StaticResource ScrollBar.Width}" />
-        --><!--<Setter Property="Height" Value="Auto"/>--><!--
+    -->
+    <!--<Setter Property="Height" Value="Auto"/>-->
+    <!--
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
@@ -168,16 +173,20 @@
         </Setter>
     </Style>
 
-    --><!--  ScrollBar Style  --><!--
+    -->
+    <!--  ScrollBar Style  -->
+    <!--
     <Style TargetType="ScrollBar">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
                     <Grid>
                         <Grid.RowDefinitions>
-                            --><!--<RowDefinition Height="Auto" />
+    -->
+    <!--<RowDefinition Height="Auto" />
                                 <RowDefinition Height="0.00001*"/>
-                                <RowDefinition Height="Auto"/>--><!--
+                                <RowDefinition Height="Auto"/>-->
+    <!--
                         </Grid.RowDefinitions>
                         <Track Name="PART_Track" IsDirectionReversed="True">
                             <Track.DecreaseRepeatButton>

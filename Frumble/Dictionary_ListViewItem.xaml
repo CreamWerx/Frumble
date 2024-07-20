@@ -20,8 +20,14 @@
         Opacity="0.4"
         Color="Blue" />
     <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da" />
-    <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="Blue" Opacity="0.5"/>
-    <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="Blue" Opacity="0.5" />
+    <SolidColorBrush
+        x:Key="Item.SelectedActive.Background"
+        Opacity="0.5"
+        Color="Blue" />
+    <SolidColorBrush
+        x:Key="Item.SelectedActive.Border"
+        Opacity="0.5"
+        Color="Blue" />
     <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA" />
     <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA" />
     <Style x:Key="PrimaryLVI" TargetType="{x:Type ListViewItem}">

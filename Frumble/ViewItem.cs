@@ -10,7 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Frumble;
-public class TViewItem : TreeViewItem
+public class TViewItem : TreeViewItem, IViewItem
 {
     public event EventHandler<TViewItem>? DoubleClicked;
     public string ItemPath { get; set; }
@@ -56,7 +56,7 @@ public class TViewItem : TreeViewItem
     }
 }
 
-public class LViewItem : ListViewItem
+public class LViewItem : ListViewItem, IViewItem
 {
     public string ItemPath { get; set; }
     public string ItemName { get; set; }

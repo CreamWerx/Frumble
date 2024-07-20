@@ -10,20 +10,36 @@ using System.Windows;
 using System.Diagnostics;
 
 namespace Frumble;
-public class CBItem : CheckBox
+public class CBItem : CheckBox, IViewItem
 {
     public event EventHandler? SelectAllChecked;
     public event EventHandler? SelectAllUnChecked;
 
+    public bool? FileOpSuccess { get; set; } = null;
     public bool IsItemChecked { get; set; } = false;
     public string ItemName { get; set; }
     public string ItemPath { get; set; }
+    public LViewItem ItemLVItem { get; set; }
+    public TViewItem ItemTVItem { get; set; }
 
     public CBItem(LViewItem lvi)
     {
         Foreground = Brushes.Ivory;
+        ItemLVItem = lvi;
         ItemName = lvi.ItemName;
         ItemPath = lvi.ItemPath;
+        Content = ItemName;
+        Checked += CBItem_Checked;
+        Unchecked += CBItem_Unchecked;
+
+    }
+
+    public CBItem(TViewItem tvi)
+    {
+        Foreground = Brushes.Ivory;
+        ItemTVItem = tvi;
+        ItemName = tvi.ItemName;
+        ItemPath = tvi.ItemPath;
         Content = ItemName;
         Checked += CBItem_Checked;
         Unchecked += CBItem_Unchecked;
@@ -53,14 +69,14 @@ public class CBItem : CheckBox
     private void CBItem_Unchecked(object sender, RoutedEventArgs e)
     {
         IsItemChecked = false;
-        Debug.WriteLine($"Do not Cut {ItemPath}");
+        //Debug.WriteLine($"Do not Cut {ItemPath}");
         //ItemUnChecked?.Invoke(this, this);
     }
 
     private void CBItem_Checked(object sender, RoutedEventArgs e)
     {
         IsItemChecked = true;
-        Debug.WriteLine($"Cut {ItemPath}");
+        //Debug.WriteLine($"Cut {ItemPath}");
         //ItemChecked?.Invoke(this, this);
     }
 

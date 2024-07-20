@@ -131,22 +131,28 @@
                                 FontSize="16"
                                 Header="Folder Operations">
                                 <WrapPanel Orientation="Vertical">
-                                    <Label
-                                        Content="Cut"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
-                                    <Label
-                                        Content="Copy"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                    <ComboBox
+                                        x:Name="cmboCutPasteDir"
+                                        VerticalAlignment="Center"
+                                        Background="Black"
+                                        DropDownClosed="cmboCutPasteDir_DropDownClosed"
+                                        DropDownOpened="cmboCutPasteDir_DropDownOpened"
+                                        Foreground="White"
+                                        IsEditable="True"
+                                        IsReadOnly="True"
+                                        Style="{StaticResource ComboBlack}"
+                                        Text="Cut" />
+                                    <ComboBox
+                                        x:Name="cmboCopyPasteDir"
+                                        VerticalAlignment="Center"
+                                        Background="Black"
+                                        DropDownClosed="cmboCopyPasteDir_DropDownClosed"
+                                        DropDownOpened="cmboCopyPasteDir_DropDownOpened"
+                                        Foreground="White"
+                                        IsEditable="True"
+                                        IsReadOnly="True"
+                                        Style="{StaticResource ComboBlack}"
+                                        Text="Copy" />
                                     <Label
                                         Content="Paste"
                                         FontSize="14"
@@ -187,7 +193,7 @@
                                 BorderThickness="0.2"
                                 FontSize="16"
                                 Header="File Operations">
-                                <WrapPanel Orientation="Vertical">
+                                <WrapPanel x:Name="wraPanelFileOp" Orientation="Vertical">
                                     <!--<Label
                                         Content="Cut"
                                         FontSize="14"
@@ -227,13 +233,14 @@
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
                                         MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                     <Label
+                                        x:Name="lblFileRename"
                                         Content="Rename"
                                         FontSize="14"
                                         Foreground="LightGray"
                                         MouseEnter="Label_MouseEnter"
                                         MouseLeave="Label_MouseLeave"
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                        MouseLeftButtonUp="lblFileRename_MouseLeftButtonUp" />
                                 </WrapPanel>
                             </GroupBox>
 
