@@ -106,13 +106,14 @@
                                 Header="Pinned">
                                 <WrapPanel Orientation="Vertical">
                                     <Label
+                                        x:Name="btnAddToPinned"
                                         Content="Add"
                                         FontSize="14"
                                         Foreground="LightGray"
                                         MouseEnter="Label_MouseEnter"
                                         MouseLeave="Label_MouseLeave"
                                         MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
+                                        MouseLeftButtonUp="btnAddToPinned_MouseLeftButtonUp" />
                                     <Label
                                         Content="Remove"
                                         FontSize="14"
@@ -153,14 +154,6 @@
                                         IsReadOnly="True"
                                         Style="{StaticResource ComboBlack}"
                                         Text="Copy" />
-                                    <Label
-                                        Content="Paste"
-                                        FontSize="14"
-                                        Foreground="LightGray"
-                                        MouseEnter="Label_MouseEnter"
-                                        MouseLeave="Label_MouseLeave"
-                                        MouseLeftButtonDown="Label_MouseLeftButtonDown"
-                                        MouseLeftButtonUp="Label_MouseLeftButtonUp" />
                                     <Label
                                         Content="Delete"
                                         FontSize="14"

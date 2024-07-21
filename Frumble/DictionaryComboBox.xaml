@@ -107,11 +107,15 @@
                                 </ScrollViewer>
                             </Grid>
                         </Popup>
+
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="HasItems" Value="False">
                             <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95" />
                         </Trigger>
+                        <!--<Trigger Property="HasItems" Value="True">
+                            <Setter TargetName="DropDownBorder" Property="Background" Value="Orange"/>
+                        </Trigger>-->
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="Gray" />
                         </Trigger>

@@ -8,65 +8,28 @@ public partial class MainWindow
     List<LViewItem> CutList = new List<LViewItem>();
     List<LViewItem> CopyList = new List<LViewItem>();
 
-    private string CutPaste()
+    private void AddSelectedFilesToPinned(IList selectedItems)
     {
-        int count = 0;
-        List<CBItem> toCutItems = new List<CBItem>();
-        foreach (var item in cmboCutPaste.Items)
-        {
-            var cbItem = (CBItem)item;
-            if (cbItem.IsItemChecked)
-            {
-                count++;
-                toCutItems.Add(cbItem);
-            }
-        }
-        FilesCut(toCutItems, tbCurrentPath.Text);
-        if (CutList.Count < 1)
-        {
-            cmboCutPaste.Items.Clear();
-        }
-        return $"Cut paste {count} items?";
+        NotImplemented();
     }
 
-    private string Cut()
+    private LViewItem? ConfirmRenameFile(string oldPath, string newPath)
     {
-        if (lv.SelectedItems is null)
+        var testOne = !File.Exists(oldPath);
+        var testTwo = File.Exists(newPath);
+        if (testOne && testTwo)
         {
-            return "null";
-        }
-        
-        if (CutList.Count == 0)
-        {
-            cmboCutPaste.Items.Clear();
-            var cbItem = new CBItem("Select All");
-            cbItem.SelectAllChecked += CbItem_SelectAllChecked;
-            cbItem.SelectAllUnChecked += CbItem_SelectAllUnChecked;
-            cmboCutPaste.Items.Add(cbItem);
-        }
-        CutList = FilesAddToCutList(lv.SelectedItems);
-        //cmboCopyPaste.Items.Clear();
-        foreach (var ListItem in CutList)
-        {
-            bool alreadyExists = false;
-            var cbItem = new CBItem(ListItem);
-            foreach (var CollectionItem in cmboCutPaste.Items)
+            foreach (var item in lv.Items)
             {
-                //alreadyExists = false;
-                var item = (CBItem)CollectionItem;
-                if (cbItem.ItemPath == item.ItemPath)
+                var lvi = (LViewItem)item;
+                if (lvi.ItemPath == newPath)
                 {
-                    alreadyExists = true;
-                    break;
+                    return lvi;
                 }
             }
-            if (!alreadyExists)
-            {
-                cmboCutPaste.Items.Add(cbItem);
-            }
+            return null;
         }
-        //var count = cmboCutPaste.Items.Count;
-        return lv.SelectedItems.Count.ToString();
+        return null;
     }
 
     private string CopyPaste()
@@ -137,6 +100,67 @@ public partial class MainWindow
             if (!alreadyExists)
             {
                 cmboCopyPaste.Items.Add(cbItem);
+            }
+        }
+        //var count = cmboCutPaste.Items.Count;
+        return lv.SelectedItems.Count.ToString();
+    }
+
+    private void CutPasteFiles()
+    {
+        //int count = 0;
+        List<CBItem> toCutItems = new List<CBItem>();
+        foreach (var item in cmboCutPaste.Items)
+        {
+            var cbItem = (CBItem)item;
+            if (cbItem.IsItemChecked)
+            {
+                //count++;
+                toCutItems.Add(cbItem);
+            }
+        }
+        FilesCut(toCutItems, tbCurrentPath.Text);
+        if (CutList.Count < 1)
+        {
+            cmboCutPaste.Items.Clear();
+        }
+        //return $"Cut paste {count} items?";
+    }
+
+    private string CutFiles()
+    {
+        if (lv.SelectedItems is null)
+        {
+            return "null";
+        }
+
+        if (CutList.Count == 0)
+        {
+            cmboCutPaste.Items.Clear();
+            var cbItem = new CBItem("Select All");
+            cbItem.SelectAllChecked += CbItem_SelectAllChecked;
+            cbItem.SelectAllUnChecked += CbItem_SelectAllUnChecked;
+            cmboCutPaste.Items.Add(cbItem);
+        }
+        CutList = FilesAddToCutList(lv.SelectedItems);
+        //cmboCopyPaste.Items.Clear();
+        foreach (var ListItem in CutList)
+        {
+            bool alreadyExists = false;
+            var cbItem = new CBItem(ListItem);
+            foreach (var CollectionItem in cmboCutPaste.Items)
+            {
+                //alreadyExists = false;
+                var item = (CBItem)CollectionItem;
+                if (cbItem.ItemPath == item.ItemPath)
+                {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if (!alreadyExists)
+            {
+                cmboCutPaste.Items.Add(cbItem);
             }
         }
         //var count = cmboCutPaste.Items.Count;

@@ -16,7 +16,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Management;
 using System.Collections.ObjectModel;
-using Microsoft.VisualBasic.FileIO;
+
+using System.Runtime.CompilerServices;
 
 
 namespace Frumble;
@@ -159,28 +160,6 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void CopyPasteDir()
-    {
-        //return;
-        try
-        {
-            var item = (CBItem)cmboCopyPasteDir.Items[0];
-            // TODO This only copies contents, need to create target folder
-            FileSystem.CopyDirectory(item.ItemPath, tbCurrentPath.Text, false);
-        }
-        catch (Exception ex)
-        {
-            Log(ex.Message, true);
-        }
-    }
-
-    private void CopyDir()
-    {
-        var selectedTVItem = (TViewItem)tv.SelectedItem;
-        CBItem cbi = new CBItem(selectedTVItem);
-        cmboCopyPasteDir.Items.Add(cbi);
-    }
-
     private void CmboCutDir_Click(object sender, RoutedEventArgs e)
     {
         if (!DropdownCutDirIsOpen)
@@ -192,17 +171,6 @@ public partial class MainWindow : Window
             CutPasteDir();
         }
         e.Handled = true;
-    }
-
-    private void CutPasteDir()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void CutDir()
-    {
-        var selectedTVItem = (TViewItem)tv.SelectedItem;
-        MessageBox.Show($"{selectedTVItem.ItemPath}");
     }
 
     private void CmboCopy_Click(object sender, RoutedEventArgs e)
@@ -245,35 +213,13 @@ public partial class MainWindow : Window
     {
         if (!DropdownCutIsOpen)
         {
-            Cut();
+            CutFiles();
         }
         else
         {
-            CutPaste();
+            CutPasteFiles();
         }
         e.Handled = true;
-    }
-
-    private void LoadFrequent(TreeView tv)
-    {
-        try
-        {
-            TVFrequent = new TViewItem(true, "Frequent");
-            tv.Items.Add(TVFrequent);
-            var paths = File.ReadAllLines(tbFrequentPath.Text);
-            foreach (var item in paths)
-            {
-                if (!string.IsNullOrWhiteSpace(item))
-                {
-                    TViewItem tViewItem = new TViewItem(item);
-                    TVFrequent.Items.Add(tViewItem);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Error(ex.Message);
-        }
     }
 
     private void LVOpenWithMenuItem_Clicked(object? sender, string e)
@@ -379,48 +325,6 @@ public partial class MainWindow : Window
         {
             (bool succss, int count) searchResults = SearchCurrentDirectory(tbSearch.Text);
         }
-    }
-
-    private TViewItem? SearchTreeView(string text)
-    {
-        
-        var pathSplit = text.Split(Path.DirectorySeparatorChar);
-        if ((pathSplit is not null) && pathSplit.Length > 0)
-        {
-            var Items = tv.Items;
-            //Log($"pathSplit: {pathSplit.Length} items: Item 0: {pathSplit[0]}");
-            foreach (var pathPart in pathSplit)
-            {
-                //Log($"Searching for {pathPart}");
-                // Get a reference to each dir in path
-                TViewItem? tViewItem = GetTViewItemByItemName(Items, pathPart);
-                if (tViewItem is not null)
-                {
-                    //Log($"Found {tViewItem.ItemPath}");
-                    //UpdateTViewItem(tViewItem);
-                    tViewItem.IsSelected = true;
-                    //tViewItem.IsExpanded = true;
-                    Items = tViewItem.Items;
-                }
-            }
-            
-        }
-        return null;
-    }
-
-    private TViewItem? GetTViewItemByItemName(ItemCollection items, string pathPart)
-    {
-        foreach (var item in items)
-        {
-            var tmpItem = (TViewItem)item;
-            //Log(tmpItem.ItemName);
-            if (tmpItem.ItemName == pathPart)
-            {
-                //Log($"returning: {tmpItem.ItemPath}");
-                return tmpItem;
-            }
-        }
-        return null;
     }
 
     private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -551,11 +455,6 @@ public partial class MainWindow : Window
 
     }
 
-    private LViewItem GetSelectedLVItem(object sender)
-    {
-        return (LViewItem)sender;
-    }
-
     private void WindowChrome_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show(e.OriginalSource.ToString());
@@ -670,9 +569,12 @@ public partial class MainWindow : Window
         }
         lblFileRename.Foreground = Brushes.Gold;
         var selectedFilePath = selectedItem.ItemPath;
-        tbRenameFile = new TextBox {Tag = selectedItem.ItemPath, Text = selectedFilePath, Background = Brushes.Black, Foreground = Brushes.Ivory, MinWidth = 100 };
+        tbRenameFile = new TextBox {Tag = selectedFilePath, Text = selectedItem.ItemName, Background = Brushes.Black, Foreground = Brushes.Ivory, MinWidth = 100, Padding = new Thickness(5,0,10,0), ToolTip = "ENTER to confirm" };
         tbRenameFile.KeyUp += TbRenameFile_KeyUp;
         wraPanelFileOp.Children.Add(tbRenameFile);
+        var selectionLength = Path.GetFileNameWithoutExtension(selectedItem.ItemName).Length;
+        tbRenameFile.Focus();
+        tbRenameFile.Select(0, selectionLength);
 
     }
 
@@ -680,10 +582,23 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            MessageBox.Show(tbRenameFile?.Text ?? "Error");
+            string newName = tbRenameFile?.Text ?? "Error";
+            
+            lblFileRename.Foreground = Brushes.LightGray;
+            if (newName != "Error")
+            {
+                string oldPath = (string)tbRenameFile.Tag;
+                string newPath = Path.Combine(Path.GetDirectoryName(oldPath), newName);
+                File.Move(oldPath, newPath);
+                PopulateListView(tbCurrentPath.Text, lv);
+                LViewItem? renamedItem = ConfirmRenameFile(oldPath, newPath);
+                if (renamedItem != null)
+                {
+                    ControlSuccess(renamedItem, true);
+                }
+            }
             wraPanelFileOp.Children.Remove(tbRenameFile);
             tbRenameFile = null;
-            lblFileRename.Foreground = Brushes.LightGray;
         }
     }
 
@@ -708,6 +623,14 @@ public partial class MainWindow : Window
     {
 
     }
+
+    private void btnAddToPinned_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        btnAddToPinned.Foreground = Brushes.LightGray;
+        AddSelectedFilesToPinned(lv.SelectedItems);
+    }
+
+   
 }
 
 

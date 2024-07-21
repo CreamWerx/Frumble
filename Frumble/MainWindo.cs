@@ -225,15 +225,29 @@ public partial class MainWindow
 
     private bool FileOperationDelete()
     {
-        var deleteItem = (LViewItem)lv.SelectedItem;
-        Log($"Delete: {deleteItem.ItemPath}");
+        List<LViewItem> itemsToDelete = new List<LViewItem>();
+        LViewItem? deleteItem = null;
+        bool success = false;
         try
         {
-            FileSystem.DeleteFile(deleteItem.ItemPath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
-            var success = !File.Exists(deleteItem.ItemPath);
-            if (success)
+            var deleteItems = lv.SelectedItems;
+
+            foreach (var item in deleteItems)
             {
-                DeleteSuccess(deleteItem, false);
+                deleteItem = (LViewItem)item;
+
+                Log($"Delete: {deleteItem.ItemPath}");
+                FileSystem.DeleteFile(deleteItem.ItemPath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                success = !File.Exists(deleteItem.ItemPath);
+                if (success)
+                {
+                    itemsToDelete.Add(deleteItem);
+                    
+                } 
+            }
+            foreach (var item in itemsToDelete)
+            {
+                DeleteSuccess(item, false);
             }
             return success;
         }
@@ -253,6 +267,11 @@ public partial class MainWindow
                 return AddFrequent();
         }
         return false;
+    }
+
+    private LViewItem? GetLviFromSender(object sender)
+    {
+        return (LViewItem)sender;
     }
 
     private string GetNewName(string itemName, string newName, bool appendMode)
@@ -279,6 +298,26 @@ public partial class MainWindow
             }
         }
         return null;
+    }
+
+    private TViewItem? GetTViewItemByItemName(ItemCollection items, string pathPart)
+    {
+        foreach (var item in items)
+        {
+            var tmpItem = (TViewItem)item;
+            //Log(tmpItem.ItemName);
+            if (tmpItem.ItemName == pathPart)
+            {
+                //Log($"returning: {tmpItem.ItemPath}");
+                return tmpItem;
+            }
+        }
+        return null;
+    }
+
+    private LViewItem GetSelectedLVItem(object sender)
+    {
+        return (LViewItem)sender;
     }
 
     private TViewItem? GetTVIByHeader(TViewItem tmpTVI, string headerName)
@@ -351,6 +390,28 @@ public partial class MainWindow
         }
     }
 
+    private void LoadFrequent(TreeView tv)
+    {
+        try
+        {
+            TVFrequent = new TViewItem(true, "Frequent");
+            tv.Items.Add(TVFrequent);
+            var paths = File.ReadAllLines(tbFrequentPath.Text);
+            foreach (var item in paths)
+            {
+                if (!string.IsNullOrWhiteSpace(item))
+                {
+                    TViewItem tViewItem = new TViewItem(item);
+                    TVFrequent.Items.Add(tViewItem);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Error(ex.Message);
+        }
+    }
+
     public void Log(string msg, bool isError = false)
     {
         if (Dispatcher.CheckAccess())
@@ -370,6 +431,11 @@ public partial class MainWindow
             Dispatcher.BeginInvoke(() => Log(msg));
             //Dispatcher.BeginInvoke(() => Log($"no access - {msg}"));
         }
+    }
+
+    private void NotImplemented([CallerMemberName] string caller = "")
+    {
+        MessageBox.Show(caller, "Not Implemented");
     }
 
     public bool PerformAction(string actionOn, string action)
@@ -557,27 +623,31 @@ public partial class MainWindow
         crumbSV.ScrollToRightEnd();
     }
 
-    private void CrumbBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private TViewItem? SearchTreeView(string text)
     {
-        e.Handled = true;
-        //Log("CrumbBox_MouseLeftButtonUp");
-        var cmbo = (ComboBox)sender;
-        var newPath = (string)cmbo.Tag;
-        //var newPath = item.ItemPath;
-        TreeViewSeekToItem(newPath);
-        ToggleBreadCrumb(Visibility.Hidden);
-    }
 
-    private void CrumbBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        //Log("CrumbBox_SelectionChanged");
-        var cmbo = (ComboBox)sender;
-        var item = (SubItem)cmbo.SelectedItem;
-        cmbo.Tag = item.ItemPath;
-        
-        var newPath = (string)cmbo.Tag;
-        TreeViewSeekToItem(newPath);
-        ToggleBreadCrumb(Visibility.Hidden);
+        var pathSplit = text.Split(Path.DirectorySeparatorChar);
+        if ((pathSplit is not null) && pathSplit.Length > 0)
+        {
+            var Items = tv.Items;
+            //Log($"pathSplit: {pathSplit.Length} items: Item 0: {pathSplit[0]}");
+            foreach (var pathPart in pathSplit)
+            {
+                //Log($"Searching for {pathPart}");
+                // Get a reference to each dir in path
+                TViewItem? tViewItem = GetTViewItemByItemName(Items, pathPart);
+                if (tViewItem is not null)
+                {
+                    //Log($"Found {tViewItem.ItemPath}");
+                    //UpdateTViewItem(tViewItem);
+                    tViewItem.IsSelected = true;
+                    //tViewItem.IsExpanded = true;
+                    Items = tViewItem.Items;
+                }
+            }
+
+        }
+        return null;
     }
 
     private bool TreeViewSeekToItem(string path, bool isHistoryNavigation = true)
@@ -736,5 +806,28 @@ public partial class MainWindow
             Log(ex.Message);
             return (false, null);
         }
+    }
+
+    private void CrumbBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        //Log("CrumbBox_MouseLeftButtonUp");
+        var cmbo = (ComboBox)sender;
+        var newPath = (string)cmbo.Tag;
+        //var newPath = item.ItemPath;
+        TreeViewSeekToItem(newPath);
+        ToggleBreadCrumb(Visibility.Hidden);
+    }
+
+    private void CrumbBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        //Log("CrumbBox_SelectionChanged");
+        var cmbo = (ComboBox)sender;
+        var item = (SubItem)cmbo.SelectedItem;
+        cmbo.Tag = item.ItemPath;
+
+        var newPath = (string)cmbo.Tag;
+        TreeViewSeekToItem(newPath);
+        ToggleBreadCrumb(Visibility.Hidden);
     }
 }

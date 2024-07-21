@@ -300,6 +300,9 @@
             <Trigger Property="HasItems" Value="false">
                 <Setter TargetName="dropDownBorder" Property="Height" Value="5" />
             </Trigger>
+            <Trigger Property="HasItems" Value="true">
+                <Setter TargetName="border" Property="Background" Value="Gold" />
+            </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsGrouping" Value="true" />
